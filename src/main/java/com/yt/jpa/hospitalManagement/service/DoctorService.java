@@ -17,7 +17,7 @@ public interface DoctorService {
 
     DoctorResponseDto updatePartialDoctor(Long id, DoctorPatchRequestDto doctorPatchRequestDto);
 
-    Void deleteDoctor(Long id);
+    void deleteDoctor(Long id);
 
 
 }

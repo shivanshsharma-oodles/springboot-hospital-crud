@@ -101,7 +101,6 @@ public class PatientServiceImpl implements PatientService {
         return modelMapper.map(patientRepository.save(patient), PatientResponseDto.class);
     }
 
-
     /* Delete Patient */
     @Override
     public Void deletePatient(Long id) {

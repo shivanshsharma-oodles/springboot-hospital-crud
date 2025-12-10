@@ -1,6 +1,7 @@
 package com.yt.jpa.hospitalManagement.entity;
 
 import com.yt.jpa.hospitalManagement.embeddable.Address;
+import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import com.yt.jpa.hospitalManagement.enums.Gender;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -50,4 +51,6 @@ public class Doctor {
     @ManyToOne(fetch = FetchType.LAZY)
     private Department department;
 
+    @Enumerated(EnumType.STRING)
+    private DoctorStatus status;
 }

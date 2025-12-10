@@ -1,5 +1,6 @@
 package com.yt.jpa.hospitalManagement.dto.response;
 
+import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -21,4 +22,6 @@ public class DoctorResponseDto {
     private Address address;
     private DepartmentResponseDto department;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private DoctorStatus  status;
 }
