@@ -44,8 +44,7 @@ public class DoctorController {
             @Valid @RequestBody DoctorRequestDto doctorRequestDto
     ) {
        return ResponseEntity
-               .status(HttpStatus.ACCEPTED)
-               .body(doctorService.updateDoctor(id, doctorRequestDto));
+               .ok(doctorService.updateDoctor(id, doctorRequestDto));
     }
 
     @PatchMapping("/{id}")
@@ -54,12 +53,11 @@ public class DoctorController {
             @Valid @RequestBody DoctorPatchRequestDto  doctorPatchRequestDto
             ){
         return ResponseEntity
-                .status(HttpStatus.ACCEPTED)
-                .body(doctorService.updatePartialDoctor(id, doctorPatchRequestDto));
+                .ok(doctorService.updatePartialDoctor(id, doctorPatchRequestDto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<DoctorResponseDto> deleteDoctor(
+    public ResponseEntity<Void> deleteDoctor(
             @PathVariable Long id
     ) {
         doctorService.deleteDoctor(id);

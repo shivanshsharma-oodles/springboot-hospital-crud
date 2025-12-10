@@ -1,5 +1,6 @@
 package com.yt.jpa.hospitalManagement.entity;
 
+import com.yt.jpa.hospitalManagement.enums.DepartmentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,4 +23,7 @@ public class Department {
 
     @Column(length = 100,  nullable = false)
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    private DepartmentStatus departmentStatus;
 }

@@ -121,7 +121,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     /* Delete Doctor */
     public void deleteDoctor(Long id){
-        Doctor doctor =  doctorRepository.findById(id)
+        Doctor doctor =  doctorRepository.findByIdAndStatusNot(id, DoctorStatus.ARCHIVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor does not exist"));
 
         doctor.setStatus(DoctorStatus.ARCHIVED);

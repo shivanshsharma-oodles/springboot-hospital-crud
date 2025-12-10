@@ -1,5 +1,6 @@
 package com.yt.jpa.hospitalManagement.entity;
 
+import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,9 @@ public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    private AppointmentStatus appointmentStatus;
 
 //    Relationships
     @ManyToOne(fetch = FetchType.LAZY)
