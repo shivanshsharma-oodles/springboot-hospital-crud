@@ -16,4 +16,3 @@ public class DepartmentPatchRequestDto {
     @Size(min = 10)
     private String description;
 }
-

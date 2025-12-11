@@ -1,8 +1,8 @@
 package com.yt.jpa.hospitalManagement.enums;
 
 public enum AppointmentStatus {
-    SCHEDULED,
     PENDING,
-    APPROVED,
+    SCHEDULED,
+    COMPLETED,
     REJECTED
 }

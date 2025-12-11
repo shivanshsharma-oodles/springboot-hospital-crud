@@ -17,5 +17,5 @@ public class AppointmentResponseDto {
 
     private DoctorSummaryDto doctor;
     private PatientSummaryDto patient;
-    private BillSummaryDto bill;
+//    private BillSummaryDto bill; // No need of bill in here
 }
