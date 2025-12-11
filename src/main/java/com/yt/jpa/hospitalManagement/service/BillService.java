@@ -15,7 +15,7 @@ public interface BillService {
     /* Get all Bills of a patient */
     List<BillResponseDto> findBillsByPatientId(Long patientId);
 
-    /* Find Bill By Appointment Id */
+    /* Get Bill By Appointment Id */
     BillResponseDto findBillByAppointmentId(Long appointmentId);
 
     /* Create Bill */
