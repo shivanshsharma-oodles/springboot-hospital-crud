@@ -2,10 +2,14 @@ package com.yt.jpa.hospitalManagement.service.impl;
 
 import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.MedicalRecordResponseDto;
+import com.yt.jpa.hospitalManagement.entity.Appointment;
 import com.yt.jpa.hospitalManagement.entity.Doctor;
 import com.yt.jpa.hospitalManagement.entity.MedicalRecord;
 import com.yt.jpa.hospitalManagement.entity.Patient;
+import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
+import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
+import com.yt.jpa.hospitalManagement.repository.AppointmentRepository;
 import com.yt.jpa.hospitalManagement.repository.DoctorRepository;
 import com.yt.jpa.hospitalManagement.repository.MedicalRecordRepository;
 import com.yt.jpa.hospitalManagement.repository.PatientRepository;
@@ -22,6 +26,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     private final MedicalRecordRepository medicalRecordRepository;
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
     private final ModelMapper modelMapper;
 
     /* Get all medical records of a patient */
@@ -63,18 +68,40 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     /* Create Medical Record */
     @Override
-    public MedicalRecordResponseDto createMedicalRecord(MedicalRecordRequestDto medicalRecordRequestDto){
-        Doctor doctor = doctorRepository.findById(medicalRecordRequestDto.getDoctorId())
+    public MedicalRecordResponseDto createMedicalRecord(MedicalRecordRequestDto dto){
+        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
 
-        Patient patient = patientRepository.findById(medicalRecordRequestDto.getPatientId())
+        Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
+
+        Appointment appointment = appointmentRepository.findById(dto.getAppointmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+
+        if(appointment.getAppointmentStatus() != AppointmentStatus.COMPLETED){
+            throw new RuntimeException("Medical record can only be created for completed appointments");
+        }
+        if(!appointment.getPatient().getId().equals(patient.getId())){
+            throw new RuntimeException("This appointment does not belong to this patient");
+        }
+        if(medicalRecordRepository.findByAppointmentId(dto.getAppointmentId()).isPresent()){
+            throw new DuplicateResourceException("Medical record already exists for this appointment");
+        }
 
         MedicalRecord record = new MedicalRecord();
         record.setDoctor(doctor);
         record.setPatient(patient);
+        record.setAppointment(appointment);
+
+        record.setSymptoms(dto.getSymptoms());
+        record.setDiagnosis(dto.getDiagnosis());
+        record.setFollowUpDate(dto.getFollowUpDate());
+        record.setTemperature(dto.getTemperature());
+        record.setPulse(dto.getPulse());
+        record.setBpSystolic(dto.getBpSystolic());
+        record.setBpDiastolic(dto.getBpDiastolic());
 
         return modelMapper.map(medicalRecordRepository.save(record), MedicalRecordResponseDto.class);
     }
-
 }

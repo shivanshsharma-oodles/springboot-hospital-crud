@@ -5,6 +5,7 @@ import com.yt.jpa.hospitalManagement.dto.response.BillResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Appointment;
 import com.yt.jpa.hospitalManagement.entity.Bill;
 import com.yt.jpa.hospitalManagement.entity.Patient;
+import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.repository.AppointmentRepository;
@@ -79,12 +80,24 @@ public class BillServiceImpl implements BillService {
         Patient patient = patientRepository.findById(billRequestDto.getPatientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
 
-//      Prevent duplicate bill for same patient
+//        Generate bill for completed appointments only.
+        if(appointment.getAppointmentStatus() != AppointmentStatus.COMPLETED){
+            throw new RuntimeException("Can not generate bill for pending / scheduled / rejected appointments");
+        }
+
+//      Prevent duplicate bill
         if(billRepository.findBillByAppointmentId(billRequestDto.getAppointmentId()).isPresent()){
             throw new DuplicateResourceException("Bill already exists for this appointment Id");
         }
 
-        Bill bill = modelMapper.map(billRequestDto, Bill.class);
+//        Bill only for same patient of the appointment.
+        if(!appointment.getPatient().getId().equals(billRequestDto.getPatientId())){
+            throw new RuntimeException("Bill can only be generated for the same appointment's patient");
+        }
+
+
+        Bill bill = new Bill();
+        bill.setAmount(billRequestDto.getAmount());
         bill.setAppointment(appointment);
         bill.setPatient(patient);
 

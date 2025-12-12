@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,4 +16,17 @@ public class MedicalRecordRequestDto {
 
     @NotNull
     private Long patientId;
+
+    @NotNull
+    private Long appointmentId;
+
+
+    private String symptoms;
+    private String diagnosis;
+    private LocalDate followUpDate;
+
+    private Double temperature;
+    private Integer pulse;
+    private Integer bpSystolic;
+    private Integer bpDiastolic;
 }
