@@ -28,10 +28,10 @@ public class Patient {
     @Column(length = 100, nullable = false)
     private String name;
 
-    @Column(length = 100, nullable = false, unique = true)
+    @Column(length = 100, nullable = false)
     private String email;
 
-    @Column(length = 15, nullable = false, unique = true)
+    @Column(length = 15, nullable = false)
     private String phone;
 
     private LocalDate dob;

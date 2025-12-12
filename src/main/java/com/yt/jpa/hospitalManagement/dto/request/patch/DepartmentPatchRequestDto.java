@@ -1,6 +1,5 @@
-package com.yt.jpa.hospitalManagement.dto.request;
+package com.yt.jpa.hospitalManagement.dto.request.patch;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;

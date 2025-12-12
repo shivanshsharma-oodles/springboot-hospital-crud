@@ -1,6 +1,6 @@
 package com.yt.jpa.hospitalManagement.service.impl;
 
-import com.yt.jpa.hospitalManagement.dto.request.PatientPatchRequestDto;
+import com.yt.jpa.hospitalManagement.dto.request.patch.PatientPatchRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.PatientRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.PatientResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Patient;
@@ -50,9 +50,8 @@ public class PatientServiceImpl implements PatientService {
         }
 
         Patient patient = modelMapper.map(patientRequestDto, Patient.class);
-        patientRepository.save(patient);
 
-        return modelMapper.map(patient, PatientResponseDto.class);
+        return modelMapper.map(patientRepository.save(patient), PatientResponseDto.class);
     }
 
     /* Update Patient */

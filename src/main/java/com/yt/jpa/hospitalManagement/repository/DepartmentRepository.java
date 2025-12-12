@@ -10,10 +10,10 @@ import java.util.Optional;
 
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department,Long> {
-    List<Department> findByStatusNot(DepartmentStatus status);
-    Optional<Department> findByIdAndStatusNot(Long id, DepartmentStatus status);
+    List<Department> findByDepartmentStatusNot(DepartmentStatus status);
+    Optional<Department> findByIdAndDepartmentStatusNot(Long id, DepartmentStatus status);
 
-    boolean existsByNameAndStatusNot(String name, DepartmentStatus status);
+    boolean existsByNameAndDepartmentStatusNot(String name, DepartmentStatus status);
 
-    boolean existsByNameAndStatusNotAndIdNot(String name, DepartmentStatus status, Long id);
+    boolean existsByNameAndDepartmentStatusNotAndIdNot(String name, DepartmentStatus status, Long id);
 }

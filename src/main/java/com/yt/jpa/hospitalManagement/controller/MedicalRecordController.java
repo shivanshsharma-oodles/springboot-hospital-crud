@@ -38,5 +38,4 @@ public class MedicalRecordController {
     public ResponseEntity<List<MedicalRecordResponseDto>> getRecordsByDoctor(@PathVariable Long doctorId) {
         return ResponseEntity.ok(medicalRecordService.findAllByDoctorId(doctorId));
     }
-
 }

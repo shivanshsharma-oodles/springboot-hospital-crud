@@ -1,6 +1,6 @@
 package com.yt.jpa.hospitalManagement.controller;
 
-import com.yt.jpa.hospitalManagement.dto.request.DepartmentPatchRequestDto;
+import com.yt.jpa.hospitalManagement.dto.request.patch.DepartmentPatchRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.DepartmentRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.DepartmentResponseDto;
 import com.yt.jpa.hospitalManagement.service.DepartmentService;

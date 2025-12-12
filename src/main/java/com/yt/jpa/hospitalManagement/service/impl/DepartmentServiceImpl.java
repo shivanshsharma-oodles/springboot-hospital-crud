@@ -1,6 +1,6 @@
 package com.yt.jpa.hospitalManagement.service.impl;
 
-import com.yt.jpa.hospitalManagement.dto.request.DepartmentPatchRequestDto;
+import com.yt.jpa.hospitalManagement.dto.request.patch.DepartmentPatchRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.DepartmentRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.DepartmentResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Department;
@@ -25,7 +25,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     /* Get All Departments */
     @Override
     public List<DepartmentResponseDto> getAllDepartments(){
-        List<Department>  departments = departmentRepository.findByStatusNot(DepartmentStatus.ARCHIVED);
+        List<Department>  departments = departmentRepository.findByDepartmentStatusNot(DepartmentStatus.ARCHIVED);
 
 //        Converting Department Entity to DTO
         return departments.stream()
@@ -36,7 +36,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     /* Get Departments from Id */
     @Override
     public DepartmentResponseDto getDepartmentById(Long id){
-        Department department = departmentRepository.findByIdAndStatusNot(id, DepartmentStatus.ARCHIVED)
+        Department department = departmentRepository.findByIdAndDepartmentStatusNot(id, DepartmentStatus.ARCHIVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
 
         return modelMapper.map(department, DepartmentResponseDto.class);
@@ -45,10 +45,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     /* Create Department */
     @Override
     public DepartmentResponseDto createDepartment(DepartmentRequestDto  departmentRequestDto) {
-        if(departmentRepository.existsByNameAndStatusNot(departmentRequestDto.getName(), DepartmentStatus.ARCHIVED)){
+        if(departmentRepository.existsByNameAndDepartmentStatusNot(departmentRequestDto.getName(), DepartmentStatus.ARCHIVED)){
             throw new DuplicateResourceException("Department already exists");
         }
         Department department = modelMapper.map(departmentRequestDto, Department.class);
+        department.setDepartmentStatus(DepartmentStatus.ACTIVE);
 
         return modelMapper.map(departmentRepository.save(department), DepartmentResponseDto.class);
     }
@@ -60,7 +61,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         Department department = departmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
 
-        if(departmentRepository.existsByNameAndStatusNotAndIdNot(departmentRequestDto.getName(), DepartmentStatus.ARCHIVED, id)){
+        if(departmentRepository.existsByNameAndDepartmentStatusNotAndIdNot(departmentRequestDto.getName(), DepartmentStatus.ARCHIVED, id)){
             throw new DuplicateResourceException("Department already exists");
         }
 
@@ -77,7 +78,7 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
 
         if(departmentPatchRequestDto.getName() != null && !departmentPatchRequestDto.getName().isEmpty()){
-            if(departmentRepository.existsByNameAndStatusNotAndIdNot(departmentPatchRequestDto.getName(), DepartmentStatus.ARCHIVED, id)){
+            if(departmentRepository.existsByNameAndDepartmentStatusNotAndIdNot(departmentPatchRequestDto.getName(), DepartmentStatus.ARCHIVED, id)){
                 throw new DuplicateResourceException("Department already exists");
             }
             department.setName(departmentPatchRequestDto.getName());
@@ -93,7 +94,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     /* Delete Department */
     @Override
     public void deleteDepartment(Long id){
-        Department department = departmentRepository.findByIdAndStatusNot(id, DepartmentStatus.ARCHIVED)
+        Department department = departmentRepository.findByIdAndDepartmentStatusNot(id, DepartmentStatus.ARCHIVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
 
         department.setDepartmentStatus(DepartmentStatus.ARCHIVED);

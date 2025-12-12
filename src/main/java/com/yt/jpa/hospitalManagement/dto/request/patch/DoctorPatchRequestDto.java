@@ -1,4 +1,4 @@
-package com.yt.jpa.hospitalManagement.dto.request;
+package com.yt.jpa.hospitalManagement.dto.request.patch;
 
 import com.yt.jpa.hospitalManagement.embeddable.Address;
 import com.yt.jpa.hospitalManagement.enums.Gender;

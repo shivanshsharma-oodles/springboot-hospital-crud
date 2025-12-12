@@ -35,5 +35,6 @@ public class DoctorRequestDto {
 
     private Address address;
 
+    @NotNull
     private Long departmentId;
 }
