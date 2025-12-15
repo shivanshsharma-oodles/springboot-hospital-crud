@@ -5,12 +5,14 @@ import com.yt.jpa.hospitalManagement.dto.request.DoctorRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.DoctorResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Department;
 import com.yt.jpa.hospitalManagement.entity.Doctor;
+import com.yt.jpa.hospitalManagement.entity.User;
 import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.mapper.DoctorMapper;
 import com.yt.jpa.hospitalManagement.repository.DepartmentRepository;
 import com.yt.jpa.hospitalManagement.repository.DoctorRepository;
+import com.yt.jpa.hospitalManagement.repository.UserRepository;
 import com.yt.jpa.hospitalManagement.service.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -23,6 +25,7 @@ import java.util.List;
 public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
     private final DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final DoctorMapper doctorMapper;
 
@@ -43,24 +46,34 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = doctorRepository.findByIdAndStatusNot(id, DoctorStatus.ARCHIVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor does not exist"));
 
-        return modelMapper.map(doctor, DoctorResponseDto.class);
+        DoctorResponseDto doctorResponseDto = modelMapper.map(doctor, DoctorResponseDto.class);
+        doctorResponseDto.setEmail(doctor.getUser().getEmail());
+        return doctorResponseDto;
     }
 
     /* Create Doctor */
     @Override
-    public DoctorResponseDto createDoctor(DoctorRequestDto doctorRequestDto) {
-        if (doctorRepository.existsByEmailAndStatusNot(doctorRequestDto.getEmail(), DoctorStatus.ARCHIVED)) {
+    public DoctorResponseDto createDoctor(String email, DoctorRequestDto doctorRequestDto) {
+        if (doctorRepository.existsByUser_EmailAndStatusNot(
+                email, DoctorStatus.ARCHIVED
+        )) {
             throw new DuplicateResourceException("Doctor already exists with same email");
         }
-        if (doctorRepository.existsByPhoneAndStatusNot(doctorRequestDto.getPhone(), DoctorStatus.ARCHIVED)) {
+        if (doctorRepository.existsByPhoneAndStatusNot(
+                doctorRequestDto.getPhone(), DoctorStatus.ARCHIVED
+        )) {
             throw new DuplicateResourceException("Doctor already exists with same phone");
         }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User does not exist"));
 
         // Load Dept from DB
         Department department = departmentRepository.findById(doctorRequestDto.getDepartmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Department does not exist"));
 
         Doctor doctor = doctorMapper.toEntity(doctorRequestDto);
+        doctor.setUser(user);
         doctor.setDepartment(department);
 
         return modelMapper.map(doctorRepository.save(doctor), DoctorResponseDto.class);
@@ -72,12 +85,11 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No Doctor with this id exists"));
 
-        if (doctorRepository.existsByEmailAndStatusNotAndIdNot(doctorRequestDto.getEmail(), DoctorStatus.ARCHIVED, id)) {
-            throw new DuplicateResourceException("Doctor already exists with same email");
-        }
+
         if (doctorRepository.existsByPhoneAndStatusNotAndIdNot(doctorRequestDto.getPhone(), DoctorStatus.ARCHIVED, id)) {
             throw new DuplicateResourceException("Doctor already exists with same phone");
         }
+
 
         Department department = departmentRepository.findById(doctorRequestDto.getDepartmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Department does not exist"));
@@ -96,12 +108,6 @@ public class DoctorServiceImpl implements DoctorService {
 
         if (doctorPatchRequestDto.getName() != null && !doctorPatchRequestDto.getName().isEmpty()) {
             doctor.setName(doctorPatchRequestDto.getName());
-        }
-        if (doctorPatchRequestDto.getEmail() != null && !doctorPatchRequestDto.getEmail().isEmpty()) {
-            if (doctorRepository.existsByEmailAndStatusNot(doctorPatchRequestDto.getEmail(), DoctorStatus.ARCHIVED)) {
-                throw new DuplicateResourceException("Doctor already exists with same email");
-            }
-            doctor.setEmail(doctorPatchRequestDto.getEmail());
         }
         if (doctorPatchRequestDto.getPhone() != null && !doctorPatchRequestDto.getPhone().isEmpty()) {
             if (doctorRepository.existsByPhoneAndStatusNot(doctorPatchRequestDto.getPhone(), DoctorStatus.ARCHIVED)) {

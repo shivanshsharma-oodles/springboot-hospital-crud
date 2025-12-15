@@ -11,7 +11,7 @@ public interface DoctorService {
 
     DoctorResponseDto getDoctorsById(Long id);
 
-    DoctorResponseDto createDoctor(DoctorRequestDto doctorRequestDto);
+    DoctorResponseDto createDoctor(String email, DoctorRequestDto doctorRequestDto);
 
     DoctorResponseDto updateDoctor(Long id, DoctorRequestDto doctorRequestDto);
 

@@ -28,8 +28,13 @@ public class Doctor {
     @Column(length = 100, nullable = false)
     private String name;
 
-    @Column(length = 100, nullable = false)
-    private String email;
+//    @Column(length = 100, nullable = false)
+//    private String email;
+
+//    Linking to auth user (email, password, roles)
+    @OneToOne(cascade = CascadeType.ALL, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
     @Column(length = 15, nullable = false)
     private String phone;

@@ -42,7 +42,7 @@ public class PatientServiceImpl implements PatientService {
     /* Create Patient */
     @Override
     public PatientResponseDto createPatient(PatientRequestDto patientRequestDto) {
-        if (patientRepository.existsByEmail(patientRequestDto.getEmail())) {
+        if (patientRepository.existsByUser_Email(patientRequestDto.getEmail())) {
             throw new DuplicateResourceException("Email already exists");
         }
         if (patientRepository.existsByPhone(patientRequestDto.getPhone())) {
@@ -60,7 +60,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No such patient exists."));
 
-        if(patientRepository.existsByEmail(patientRequestDto.getEmail())){
+        if(patientRepository.existsByUser_Email(patientRequestDto.getEmail())){
             throw new DuplicateResourceException("Doctor already exists with same email");
         }
         if(patientRepository.existsByPhone(patientRequestDto.getPhone())){

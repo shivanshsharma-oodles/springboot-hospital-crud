@@ -19,9 +19,10 @@ public class DoctorRequestDto {
     @NotBlank(message = "Name is required")
     private String name;
 
-    @Email(message = "Enter Valid Email")
-    @NotBlank(message = "Email is required")
-    private String email;
+//    @Email(message = "Enter Valid Email")
+//    @NotBlank(message = "Email is required")
+//    private String email;
+
 
     @NotBlank(message = "Phone can not be blank")
     @Size(min = 8, max = 15)

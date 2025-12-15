@@ -16,8 +16,8 @@ import java.time.LocalDate;
 public class DoctorPatchRequestDto {
     private String name;
 
-    @Email(message = "Enter Valid Email")
-    private String email;
+//    @Email(message = "Enter Valid Email")
+//    private String email;
 
     @Size(min = 8, max = 15)
     private String phone;

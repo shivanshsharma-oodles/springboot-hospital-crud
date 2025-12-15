@@ -32,6 +32,8 @@ public class MedicalRecord {
 
     private String symptoms;
     private String diagnosis;
+    private String treatment;
+    private String prescriptions;
 
     private LocalDate followUpDate;
 
@@ -39,6 +41,7 @@ public class MedicalRecord {
     private Integer pulse;
     private Integer bpSystolic;
     private Integer bpDiastolic;
+
 
     @CreationTimestamp
     private LocalDateTime createdAt;
