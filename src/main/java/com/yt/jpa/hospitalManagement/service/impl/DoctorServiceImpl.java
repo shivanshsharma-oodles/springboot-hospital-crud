@@ -46,9 +46,10 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = doctorRepository.findByIdAndStatusNot(id, DoctorStatus.ARCHIVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor does not exist"));
 
-        DoctorResponseDto doctorResponseDto = modelMapper.map(doctor, DoctorResponseDto.class);
-        doctorResponseDto.setEmail(doctor.getUser().getEmail());
-        return doctorResponseDto;
+//        DoctorResponseDto doctorResponseDto = modelMapper.map(doctor, DoctorResponseDto.class);
+//        doctorResponseDto.setEmail(doctor.getUser().getEmail());
+//        return doctorResponseDto;
+        return doctorMapper.toResponseDto(doctor);
     }
 
     /* Create Doctor */
@@ -76,7 +77,8 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setUser(user);
         doctor.setDepartment(department);
 
-        return modelMapper.map(doctorRepository.save(doctor), DoctorResponseDto.class);
+        doctorRepository.save(doctor);
+        return doctorMapper.toResponseDto(doctor);
     }
 
     /* Update Doctor */
@@ -97,7 +99,9 @@ public class DoctorServiceImpl implements DoctorService {
         doctorMapper.updateEntity(doctorRequestDto, doctor);
         doctor.setDepartment(department);
 
-        return modelMapper.map(doctorRepository.save(doctor), DoctorResponseDto.class);
+//        return modelMapper.map(doctorRepository.save(doctor), DoctorResponseDto.class);
+        doctorRepository.save(doctor);
+        return doctorMapper.toResponseDto(doctor);
     }
 
     /* Update Partial Doctor */
@@ -130,7 +134,9 @@ public class DoctorServiceImpl implements DoctorService {
             doctor.setDepartment(department);
         }
 
-        return modelMapper.map(doctorRepository.save(doctor), DoctorResponseDto.class);
+//        return modelMapper.map(doctorRepository.save(doctor), DoctorResponseDto.class);
+        doctorRepository.save(doctor);
+        return doctorMapper.toResponseDto(doctor);
     }
 
     /* Delete Doctor */

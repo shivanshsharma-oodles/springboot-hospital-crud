@@ -11,7 +11,7 @@ public interface PatientService {
 
     PatientResponseDto findPatientById(Long id);
 
-    PatientResponseDto createPatient(PatientRequestDto patientRequestDto);
+    PatientResponseDto createPatient(String email, PatientRequestDto patientRequestDto);
 
     PatientResponseDto updatePatient(Long id, PatientRequestDto patientRequestDto);
 

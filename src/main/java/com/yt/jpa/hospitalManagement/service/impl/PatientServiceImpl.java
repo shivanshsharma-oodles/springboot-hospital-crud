@@ -4,9 +4,12 @@ import com.yt.jpa.hospitalManagement.dto.request.patch.PatientPatchRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.PatientRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.PatientResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Patient;
+import com.yt.jpa.hospitalManagement.entity.User;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
+import com.yt.jpa.hospitalManagement.mapper.PatientMapper;
 import com.yt.jpa.hospitalManagement.repository.PatientRepository;
+import com.yt.jpa.hospitalManagement.repository.UserRepository;
 import com.yt.jpa.hospitalManagement.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -20,6 +23,8 @@ public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
     private final ModelMapper modelMapper;
+    private final PatientMapper patientMapper;
+    private final UserRepository userRepository;
 
     /* Get All Patients */
     @Override
@@ -36,22 +41,31 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientResponseDto findPatientById(Long id) {
         Patient patient = patientRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No Such Patient Exists."));
-        return modelMapper.map(patient, PatientResponseDto.class);
+
+        return patientMapper.toResponseDto(patient);
+//        return modelMapper.map(patient, PatientResponseDto.class);
     }
 
     /* Create Patient */
     @Override
-    public PatientResponseDto createPatient(PatientRequestDto patientRequestDto) {
-        if (patientRepository.existsByUser_Email(patientRequestDto.getEmail())) {
+    public PatientResponseDto createPatient(String email, PatientRequestDto patientRequestDto) {
+        if (patientRepository.existsByUser_Email(email)) {
             throw new DuplicateResourceException("Email already exists");
         }
         if (patientRepository.existsByPhone(patientRequestDto.getPhone())) {
             throw new DuplicateResourceException("Phone already exists");
         }
 
-        Patient patient = modelMapper.map(patientRequestDto, Patient.class);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User does not exist"));
 
-        return modelMapper.map(patientRepository.save(patient), PatientResponseDto.class);
+        Patient patient = patientMapper.toEntity(patientRequestDto);
+        patient.setUser(user);
+        patientRepository.save(patient);
+
+        return patientMapper.toResponseDto(patient);
+
+//        return modelMapper.map(patientRepository.save(patient), PatientResponseDto.class);
     }
 
     /* Update Patient */
@@ -60,17 +74,15 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No such patient exists."));
 
-        if(patientRepository.existsByUser_Email(patientRequestDto.getEmail())){
-            throw new DuplicateResourceException("Doctor already exists with same email");
-        }
-        if(patientRepository.existsByPhone(patientRequestDto.getPhone())){
+        if (patientRepository.existsByPhone(patientRequestDto.getPhone())) {
             throw new DuplicateResourceException("Doctor already exists with same phone");
         }
 
 //        Map data from dto to entity directly if patient exists.
-        modelMapper.map(patientRequestDto, patient);
+//        modelMapper.map(patientRequestDto, patient);
 
-        return modelMapper.map(patientRepository.save(patient), PatientResponseDto.class);
+        patientRepository.save(patient);
+        return patientMapper.toResponseDto(patient);
     }
 
     /* Update Partial Patient */
@@ -81,9 +93,6 @@ public class PatientServiceImpl implements PatientService {
 
         if (patientPatchRequestDto.getName() != null && !patientPatchRequestDto.getName().isEmpty()) {
             patient.setName(patientPatchRequestDto.getName());
-        }
-        if (patientPatchRequestDto.getEmail() != null && !patientPatchRequestDto.getEmail().isEmpty()) {
-            patient.setEmail(patientPatchRequestDto.getEmail());
         }
         if (patientPatchRequestDto.getPhone() != null && !patientPatchRequestDto.getPhone().isEmpty()) {
             patient.setPhone(patientPatchRequestDto.getPhone());
@@ -97,7 +106,10 @@ public class PatientServiceImpl implements PatientService {
         if (patientPatchRequestDto.getAddress() != null) {
             patient.setAddress(patientPatchRequestDto.getAddress());
         }
-        return modelMapper.map(patientRepository.save(patient), PatientResponseDto.class);
+
+        patientRepository.save(patient);
+        return patientMapper.toResponseDto(patient);
+//        return modelMapper.map(patientRepository.save(patient), PatientResponseDto.class);
     }
 
     /* Delete Patient */

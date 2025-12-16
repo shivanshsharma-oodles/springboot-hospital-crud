@@ -20,9 +20,9 @@ public class PatientRequestDto {
     @NotBlank(message = "Name is required")
     private String name;
 
-    @Email(message = "Enter valid email id")
-    @NotBlank(message = "Email cannot be blank")
-    private String email;
+//    @Email(message = "Enter valid email id")
+//    @NotBlank(message = "Email cannot be blank")
+//    private String email;
 
     private Address address;
 

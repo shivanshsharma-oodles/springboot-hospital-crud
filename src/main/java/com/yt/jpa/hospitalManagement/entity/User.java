@@ -2,11 +2,12 @@ package com.yt.jpa.hospitalManagement.entity;
 
 import com.yt.jpa.hospitalManagement.enums.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -14,7 +15,9 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
-public class User {
+@Builder
+@Table(name = "users")
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +38,15 @@ public class User {
     @Column(name = "role")
     private Set<Role> roles;
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
 }
 
 /*

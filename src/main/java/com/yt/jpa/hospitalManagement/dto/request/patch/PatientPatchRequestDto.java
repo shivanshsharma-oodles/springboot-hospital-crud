@@ -17,8 +17,8 @@ public class PatientPatchRequestDto {
 
     private String name;
 
-    @Email(message = "Enter valid email id")
-    private String email;
+//    @Email(message = "Enter valid email id")
+//    private String email;
     private Address address;
 
     @Size(min = 8, max = 15)

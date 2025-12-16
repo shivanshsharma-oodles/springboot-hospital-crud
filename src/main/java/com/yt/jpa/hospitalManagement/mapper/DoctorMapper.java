@@ -10,7 +10,6 @@ public class DoctorMapper {
     public Doctor toEntity(DoctorRequestDto dto) {
         Doctor doctor = new Doctor();
         doctor.setName(dto.getName());
-//        doctor.setEmail(dto.getEmail());
         doctor.setPhone(dto.getPhone());
         doctor.setDob(dto.getDob());
         doctor.setGender(dto.getGender());
@@ -42,6 +41,7 @@ public class DoctorMapper {
         dto.setStatus(doctor.getStatus());
         dto.setCreatedAt(doctor.getCreatedAt());
         dto.setUpdatedAt(doctor.getUpdatedAt());
+
         return dto;
     }
 

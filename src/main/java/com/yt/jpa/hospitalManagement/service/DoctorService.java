@@ -18,6 +18,4 @@ public interface DoctorService {
     DoctorResponseDto updatePartialDoctor(Long id, DoctorPatchRequestDto doctorPatchRequestDto);
 
     void deleteDoctor(Long id);
-
-
 }
