@@ -7,17 +7,20 @@ import java.util.List;
 
 public interface BillService {
     /* Get All Bills */
-    List<BillResponseDto> findAllBills();
+    List<BillResponseDto> findAllBills(Long patientId);
 
     /* Get Bill By id */
     BillResponseDto findBillById(Long id);
 
+    /* Bills by Appointment id */
+    BillResponseDto findBillByAppointmentIdForAdmin(Long appointmentId);
+
     /* Get all Bills of a patient */
     List<BillResponseDto> findBillsByPatientId(Long patientId);
 
-    /* Get Bill By Appointment Id */
-    BillResponseDto findBillByAppointmentId(Long appointmentId);
+    /* Get Bill By Appointment id */
+    BillResponseDto findBillByAppointmentId(Long patientId, Long appointmentId);
 
     /* Create Bill */
-    BillResponseDto createBill(BillRequestDto billRequestDto);
+    BillResponseDto createBill(Long doctorId, BillRequestDto billRequestDto);
 }

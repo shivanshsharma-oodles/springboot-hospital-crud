@@ -3,10 +3,7 @@ package com.yt.jpa.hospitalManagement.entity;
 import com.yt.jpa.hospitalManagement.embeddable.Address;
 import com.yt.jpa.hospitalManagement.enums.Gender;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -19,6 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Patient {
 
     @Id
@@ -32,8 +30,8 @@ public class Patient {
 //    private String email;
 
 //    Linking to auth user (email, password, roles)
-    @OneToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @OneToOne
+    @MapsId // it tells if patient does not exist without user, then there is no need of two ids in Patient so, hibernate will set id == user_id
     private User user;
 
     @Column(length = 15, nullable = false)

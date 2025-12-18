@@ -68,14 +68,14 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     /* Create Medical Record */
     @Override
-    public MedicalRecordResponseDto createMedicalRecord(MedicalRecordRequestDto dto){
-        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+    public MedicalRecordResponseDto createMedicalRecord(Long appointmentId, Long doctorId, Long patientId, MedicalRecordRequestDto dto){
+        Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
 
-        Patient patient = patientRepository.findById(dto.getPatientId())
+        Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
 
-        Appointment appointment = appointmentRepository.findById(dto.getAppointmentId())
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
 
@@ -85,7 +85,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         if(!appointment.getPatient().getId().equals(patient.getId())){
             throw new RuntimeException("This appointment does not belong to this patient");
         }
-        if(medicalRecordRepository.findByAppointmentId(dto.getAppointmentId()).isPresent()){
+        if(medicalRecordRepository.findByAppointmentId(appointmentId).isPresent()){
             throw new DuplicateResourceException("Medical record already exists for this appointment");
         }
 
@@ -104,4 +104,5 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
         return modelMapper.map(medicalRecordRepository.save(record), MedicalRecordResponseDto.class);
     }
+
 }

@@ -3,6 +3,7 @@ package com.yt.jpa.hospitalManagement.service.impl;
 import com.yt.jpa.hospitalManagement.dto.request.patch.DoctorPatchRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.DoctorRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.DoctorResponseDto;
+import com.yt.jpa.hospitalManagement.dto.response.publicDto.DoctorPublicDto;
 import com.yt.jpa.hospitalManagement.entity.Department;
 import com.yt.jpa.hospitalManagement.entity.Doctor;
 import com.yt.jpa.hospitalManagement.entity.User;
@@ -40,7 +41,15 @@ public class DoctorServiceImpl implements DoctorService {
                 .toList();
     }
 
-    /* Get Doctor By id */
+    @Override
+    public DoctorPublicDto getDoctorPubliclyById(Long id){
+        Doctor doctor = doctorRepository.findByIdAndStatusNot(id, DoctorStatus.ARCHIVED)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor does not exist"));
+
+        return modelMapper.map(doctor, DoctorPublicDto.class);
+    }
+
+    /* Get Doctor(Own) By id */
     @Override
     public DoctorResponseDto getDoctorsById(Long id) {
         Doctor doctor = doctorRepository.findByIdAndStatusNot(id, DoctorStatus.ARCHIVED)
@@ -103,6 +112,7 @@ public class DoctorServiceImpl implements DoctorService {
         doctorRepository.save(doctor);
         return doctorMapper.toResponseDto(doctor);
     }
+
 
     /* Update Partial Doctor */
     @Override

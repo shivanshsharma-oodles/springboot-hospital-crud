@@ -11,15 +11,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MedicalRecordRequestDto {
-    @NotNull
-    private Long doctorId;
-
-    @NotNull
-    private Long patientId;
-
-    @NotNull
-    private Long appointmentId;
-
 
     private String symptoms;
     private String diagnosis;

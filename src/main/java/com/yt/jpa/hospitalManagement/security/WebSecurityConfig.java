@@ -1,4 +1,5 @@
 package com.yt.jpa.hospitalManagement.security;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,52 +13,98 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @RequiredArgsConstructor
-    public  class WebSecurityConfig {
+public class WebSecurityConfig {
 
-        private final JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthFilter jwtAuthFilter;
 
-        @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-    //        This httpSecurity object is used to configure web based security for specific http requests.
-            httpSecurity
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        //        This httpSecurity object is used to configure web based security for specific http requests.
+        httpSecurity
 
-                    .csrf(csrfConfig -> csrfConfig.disable()) // csrf disabled
-                    .sessionManagement(sessionConfig -> // session management configuration
-                            sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    // authorizeHttpRequests method is used to restrict access based on the HttpServletRequest
-                    .authorizeHttpRequests(auth -> auth
+                .csrf(csrfConfig -> csrfConfig.disable()) // csrf disabled
+                .sessionManagement(sessionConfig -> // session management configuration
+                        sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // authorizeHttpRequests method is used to restrict access based on the HttpServletRequest
+                .authorizeHttpRequests(auth -> auth
 
-                            // Auth
-                            .requestMatchers("/auth/**").permitAll() // Public endpoints
+//                        Auth
+                                .requestMatchers("/auth/**").permitAll() // Public endpoints
 
-                            // Public Read-Only Endpoints
-                            .requestMatchers(HttpMethod.GET,
-                                    "/departments/**",
-                                    "/doctors/**"
-                            ).permitAll()
+//                        Public Read-Only Endpoints
+                                .requestMatchers(HttpMethod.GET,
+                                        "/departments/**",
+                                        "/doctors/**"
+                                ).permitAll()
 
-//                            // DOCTOR & Admin ONLY
-//                            .requestMatchers("/doctors/**").hasAnyRole("DOCTOR", "ADMIN")
-//
-//                            // PATIENT & Admin ONLY
-//                            .requestMatchers("/patients/**").hasAnyRole("PATIENT", "ADMIN")
+//                        Patient & Doctor Only
+                                .requestMatchers("/appointments/me").hasAnyRole("DOCTOR", "PATIENT")
 
-//                            // DOCTOR and PATIENT & Admin
-//                            .requestMatchers(
-//                                    "/appointments/**",
-//                                    "/bills/**",
-//                                    "/medical-records/**"
-//                            ).hasAnyRole("DOCTOR", "PATIENT", "ADMIN")
+//                        Patient Only
+                                .requestMatchers(
+                                        HttpMethod.POST,
+                                        "/appointments"
+                                ).hasAnyRole("PATIENT")
 
-                            // ADMIN ONLY
-//                            .anyRequest().hasRole("ADMIN")
-                            .anyRequest().authenticated()
-                    )
-                    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            ;
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/bills/me",
+                                        "/bills/appointment/*"
+                                ).hasAnyRole("PATIENT")
 
-            return httpSecurity.build();
-        }
+                                // Patient Controller
+                                .requestMatchers(HttpMethod.GET, "/patients/me").hasRole("PATIENT")
+                                .requestMatchers(HttpMethod.POST, "/patients").hasRole("PATIENT")
+                                .requestMatchers(HttpMethod.PUT, "/patients").hasRole("PATIENT")
+                                .requestMatchers(HttpMethod.PATCH, "/patients").hasRole("PATIENT")
+
+
+//                        Doctor Only
+                                // Update Status
+                                .requestMatchers(
+                                        HttpMethod.PUT,
+                                        "/appointments/*/status",
+                                        "/appointments/*/complete"
+                                ).hasRole("DOCTOR")
+
+                                // Create Bill
+                                .requestMatchers(
+                                        HttpMethod.POST,
+                                        "/bills"
+                                ).hasRole("DOCTOR")
+
+                                // Get and Update Doctor
+                                .requestMatchers(HttpMethod.GET, "/doctors/me").hasRole("DOCTOR")
+                                .requestMatchers(HttpMethod.PATCH, "/doctors").hasRole("DOCTOR")
+                                .requestMatchers(HttpMethod.PUT, "/doctors").hasRole("DOCTOR")
+
+
+//                        Admin Only
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/appointments/admin/**",
+                                        "/bills/admin/**",
+                                        "/doctors/admin/**",
+                                        "/patients/admin/**",
+                                        "/medical-records/admin/**"
+                                ).hasRole("ADMIN")
+
+                                // Create Doctor
+                                .requestMatchers(HttpMethod.POST, "/doctors").hasRole("ADMIN")
+
+                                // Department Write
+                                .requestMatchers("/departments/**"
+                                ).hasRole("ADMIN")
+
+                                .anyRequest().hasRole("ADMIN")
+//                              .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+        ;
+
+        return httpSecurity.build();
+    }
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

@@ -27,6 +27,9 @@ public class Bill {
     @ManyToOne(fetch = FetchType.LAZY)
     private Patient patient;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Doctor doctor;
+
     private Double amount;
 
     @CreationTimestamp

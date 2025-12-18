@@ -1,5 +1,6 @@
 package com.yt.jpa.hospitalManagement.controller;
 
+import com.yt.jpa.hospitalManagement.dto.request.SignupRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.LoginResponseDto;
 import com.yt.jpa.hospitalManagement.dto.response.SignupResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponseDto> signup(@RequestBody LoginRequestDto dto){
+    public ResponseEntity<SignupResponseDto> signup(@RequestBody SignupRequestDto dto){
         return ResponseEntity.ok(authService.registerUser(dto));
     }
 }

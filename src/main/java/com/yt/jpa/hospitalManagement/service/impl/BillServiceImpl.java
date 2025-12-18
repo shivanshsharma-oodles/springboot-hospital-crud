@@ -8,6 +8,7 @@ import com.yt.jpa.hospitalManagement.entity.Patient;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
+import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
 import com.yt.jpa.hospitalManagement.repository.AppointmentRepository;
 import com.yt.jpa.hospitalManagement.repository.BillRepository;
 import com.yt.jpa.hospitalManagement.repository.PatientRepository;
@@ -29,9 +30,16 @@ public class BillServiceImpl implements BillService {
 
     /* Get All Bills */
     @Override
-    public List<BillResponseDto> findAllBills(){
-        List<Bill> bills = billRepository.findAll();
-
+    public List<BillResponseDto> findAllBills(Long patientId) {
+        List<Bill> bills;
+        if (patientId != null) {
+            bills = billRepository
+                    .findAllByPatientId(patientId);
+        }
+        else {
+            // No filters, so all bills
+            bills = billRepository.findAll();
+        }
         return bills.stream()
                 .map(b -> modelMapper.map(b, BillResponseDto.class))
                 .toList();
@@ -46,13 +54,25 @@ public class BillServiceImpl implements BillService {
         return modelMapper.map(bill, BillResponseDto.class);
     }
 
+    @Override
+    public BillResponseDto findBillByAppointmentIdForAdmin(Long appointmentId) {
+
+        appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+        Bill bill = billRepository.findByAppointmentId(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bill not found"));
+
+        return modelMapper.map(bill, BillResponseDto.class);
+    }
+
     /* Get all Bills of a patient */
     @Override
     public List<BillResponseDto> findBillsByPatientId(Long patientId){
         patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
 
-        List<Bill> bills = billRepository.findAllBillsByPatientId(patientId);
+        List<Bill> bills = billRepository.findAllByPatientId(patientId);
 
         return bills.stream()
                 .map(b -> modelMapper.map(b, BillResponseDto.class))
@@ -61,11 +81,16 @@ public class BillServiceImpl implements BillService {
 
     /* Find Bill By Appointment Id */
     @Override
-    public BillResponseDto findBillByAppointmentId(Long appointmentId){
-        appointmentRepository.findById(appointmentId)
+    public BillResponseDto findBillByAppointmentId(Long patientId, Long appointmentId){
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
-        Bill bill = billRepository.findBillByAppointmentId(appointmentId)
+        // Patient can only view own appointment bill
+        if(!appointment.getPatient().getId().equals(patientId)){
+            throw new UnauthorizedActionException("You are not allowed to access this bill");
+        }
+
+        Bill bill = billRepository.findByAppointmentId(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Bill not found"));
 
         return modelMapper.map(bill, BillResponseDto.class);
@@ -73,12 +98,16 @@ public class BillServiceImpl implements BillService {
 
     /* Create Bill */
     @Override
-    public BillResponseDto createBill(BillRequestDto billRequestDto){
+    public BillResponseDto createBill(Long doctorId, BillRequestDto billRequestDto){
+
         Appointment appointment = appointmentRepository.findById(billRequestDto.getAppointmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
-        Patient patient = patientRepository.findById(billRequestDto.getPatientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
+        if (!appointment.getDoctor().getId().equals(doctorId)) {
+            throw new UnauthorizedActionException(
+                    "Doctor cannot bill for this appointment"
+            );
+        }
 
 //        Generate bill for completed appointments only.
         if(appointment.getAppointmentStatus() != AppointmentStatus.COMPLETED){
@@ -86,20 +115,14 @@ public class BillServiceImpl implements BillService {
         }
 
 //      Prevent duplicate bill
-        if(billRepository.findBillByAppointmentId(billRequestDto.getAppointmentId()).isPresent()){
+        if(billRepository.findByAppointmentId(billRequestDto.getAppointmentId()).isPresent()){
             throw new DuplicateResourceException("Bill already exists for this appointment Id");
         }
-
-//        Bill only for same patient of the appointment.
-        if(!appointment.getPatient().getId().equals(billRequestDto.getPatientId())){
-            throw new RuntimeException("Bill can only be generated for the same appointment's patient");
-        }
-
 
         Bill bill = new Bill();
         bill.setAmount(billRequestDto.getAmount());
         bill.setAppointment(appointment);
-        bill.setPatient(patient);
+        bill.setPatient(appointment.getPatient());
 
         return modelMapper.map(billRepository.save(bill), BillResponseDto.class);
     }

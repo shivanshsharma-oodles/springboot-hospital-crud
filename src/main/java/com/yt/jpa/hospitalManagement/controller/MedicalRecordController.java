@@ -17,17 +17,18 @@ import java.util.List;
 public class MedicalRecordController {
     private final MedicalRecordService medicalRecordService;
 
-    @PostMapping
-    public ResponseEntity<MedicalRecordResponseDto> createRecord(
-            @Valid  @RequestBody MedicalRecordRequestDto dto) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(medicalRecordService.createMedicalRecord(dto));
-    }
     @GetMapping("/{id}")
     public ResponseEntity<MedicalRecordResponseDto> getRecord(@PathVariable Long id) {
         return ResponseEntity.ok(medicalRecordService.findMedicalRecordById(id));
     }
+
+//    @PostMapping
+//    public ResponseEntity<MedicalRecordResponseDto> createRecord(
+//            @Valid  @RequestBody MedicalRecordRequestDto dto) {
+//
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(medicalRecordService.createMedicalRecord(dto));
+//    }
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<MedicalRecordResponseDto>> getRecordsByPatient(@PathVariable Long patientId) {

@@ -11,7 +11,7 @@ import org.hibernate.sql.Update;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AppointmentRequestDto {
-    @NotNull(message = "Patient Id is required")
+//    @NotNull(message = "Patient Id is required")
     private Long patientId;
 
     @NotNull(message = "Patient Id is required")

@@ -32,8 +32,8 @@ public class Doctor {
 //    private String email;
 
 //    Linking to auth user (email, password, roles)
-    @OneToOne(cascade = CascadeType.ALL, optional = false)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @OneToOne
+    @MapsId
     private User user;
 
     @Column(length = 15, nullable = false)

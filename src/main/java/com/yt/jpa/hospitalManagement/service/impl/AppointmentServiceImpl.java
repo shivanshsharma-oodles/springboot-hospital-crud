@@ -1,7 +1,7 @@
 package com.yt.jpa.hospitalManagement.service.impl;
 
 import com.yt.jpa.hospitalManagement.dto.request.AppointmentRequestDto;
-import com.yt.jpa.hospitalManagement.dto.request.AppointmentUpdateRequestDto;
+import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Appointment;
 import com.yt.jpa.hospitalManagement.entity.Doctor;
@@ -14,6 +14,8 @@ import com.yt.jpa.hospitalManagement.repository.AppointmentRepository;
 import com.yt.jpa.hospitalManagement.repository.DoctorRepository;
 import com.yt.jpa.hospitalManagement.repository.PatientRepository;
 import com.yt.jpa.hospitalManagement.service.AppointmentService;
+import com.yt.jpa.hospitalManagement.service.MedicalRecordService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -26,12 +28,33 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
+
+    private final MedicalRecordService medicalRecordService;
+
     private final ModelMapper modelMapper;
 
     /* Get All Appointments */
     @Override
-    public List<AppointmentResponseDto> findAll(){
-        List<Appointment> appointments = appointmentRepository.findAll();
+    public List<AppointmentResponseDto> findAll(Long patientId, Long doctorId) {
+        List<Appointment> appointments;
+
+        if (doctorId != null && patientId != null) {
+            // Rare case (admin advanced filter)
+            appointments = appointmentRepository
+                    .findByDoctorIdAndPatientId(doctorId, patientId);
+        }
+        else if (doctorId != null) {
+            appointments = appointmentRepository
+                    .findByDoctorId(doctorId);
+        }
+        else if (patientId != null) {
+            appointments = appointmentRepository
+                    .findByPatientId(patientId);
+        }
+        else {
+            // No filters, so all appointments
+            appointments = appointmentRepository.findAll();
+        }
 
         return appointments.stream()
                 .map(a -> modelMapper.map(a, AppointmentResponseDto.class))
@@ -47,33 +70,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         return modelMapper.map(appointment, AppointmentResponseDto.class);
     }
 
-    /* All Appointments of a doctor by doctorId */
-    @Override
-    public List<AppointmentResponseDto> findAllByDoctorId(Long doctorId){
-
-        // Checking if Doctor is present or not
-        doctorRepository.findByIdAndStatusNot(doctorId, DoctorStatus.ARCHIVED)
-                .orElseThrow(() -> new ResourceNotFoundException("Doctor Not Found"));
-
-        List<Appointment> appointments = appointmentRepository.findByDoctorId(doctorId);
-
-        return appointments.stream()
-                .map(a -> modelMapper.map(a, AppointmentResponseDto.class))
-                .toList();
-    }
-
-    /* All Appointments of a doctor by doctorId */
-    @Override
-    public List<AppointmentResponseDto> findAllByPatientId(Long patientId){
-        if(patientRepository.findById(patientId).isEmpty()){
-            throw new ResourceNotFoundException("Patient Not Found");
-        }
-        List<Appointment> appointments = appointmentRepository.findByPatientId(patientId);
-
-        return appointments.stream()
-                .map(a -> modelMapper.map(a, AppointmentResponseDto.class))
-                .toList();
-    }
 
     /* Create Appointment */
     @Override
@@ -97,13 +93,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);
     }
 
-    /* Update Appointment */
+    /* Complete Appointment */
     @Override
-    public AppointmentResponseDto updateAppointment(Long appointmentId, AppointmentUpdateRequestDto appointmentUpdateRequestDto){
+    @Transactional
+    public AppointmentResponseDto completeAppointment(Long appointmentId, Long doctorId, MedicalRecordRequestDto medicalRecordRequestDto){
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("appointment not found"));
 
-        if(!appointment.getDoctor().getId().equals(appointmentUpdateRequestDto.getDoctorId())){
+        if(!appointment.getDoctor().getId().equals(doctorId)){
             throw new UnauthorizedActionException("Unauthorized Action");
         }
 
@@ -111,9 +108,53 @@ public class AppointmentServiceImpl implements AppointmentService {
         if(currentStatus == AppointmentStatus.REJECTED || currentStatus == AppointmentStatus.COMPLETED){
             throw new RuntimeException("Completed/Rejected appointment cannot be changed");
         }
-        appointment.setAppointmentStatus(appointmentUpdateRequestDto.getStatus());
+
+        // Create medical record
+        medicalRecordService.createMedicalRecord(
+                appointmentId,
+                doctorId,
+                appointment.getPatient().getId(),
+                medicalRecordRequestDto
+        );
+
+        // Mark appointment completed
+        appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
 
         return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);
+    }
+
+
+    /* Update Appointment */
+    @Override
+    public AppointmentResponseDto updateAppointment(Long doctorId, Long appointmentId, AppointmentStatus appointmentStatus){
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("appointment not found"));
+
+        if(!appointment.getDoctor().getId().equals(doctorId)){
+            throw new UnauthorizedActionException("Unauthorized Action");
+        }
+
+        AppointmentStatus currentStatus = appointment.getAppointmentStatus();
+        if(currentStatus == AppointmentStatus.REJECTED || currentStatus == AppointmentStatus.COMPLETED){
+            throw new RuntimeException("Completed/Rejected appointment cannot be changed");
+        }
+
+        if( appointmentStatus == AppointmentStatus.COMPLETED){
+            throw new UnauthorizedActionException("Can Not Complete Appointment");
+        }
+
+        appointment.setAppointmentStatus(appointmentStatus);
+
+        return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);
+    }
+
+    @Override
+    public List<AppointmentResponseDto> findMyAppointments(Long id) {
+        List<Appointment> appointments = appointmentRepository.findByPatientIdOrDoctorId(id);
+
+        return appointments.stream()
+                .map(a -> modelMapper.map(a, AppointmentResponseDto.class))
+                .toList();
     }
 
 }

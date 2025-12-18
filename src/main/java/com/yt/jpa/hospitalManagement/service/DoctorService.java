@@ -3,6 +3,7 @@ package com.yt.jpa.hospitalManagement.service;
 import com.yt.jpa.hospitalManagement.dto.request.patch.DoctorPatchRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.DoctorRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.DoctorResponseDto;
+import com.yt.jpa.hospitalManagement.dto.response.publicDto.DoctorPublicDto;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ public interface DoctorService {
     List<DoctorResponseDto> getAllDoctors();
 
     DoctorResponseDto getDoctorsById(Long id);
+    DoctorPublicDto getDoctorPubliclyById(Long id);
 
     DoctorResponseDto createDoctor(String email, DoctorRequestDto doctorRequestDto);
 
