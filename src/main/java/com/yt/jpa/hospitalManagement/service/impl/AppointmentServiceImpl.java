@@ -6,8 +6,10 @@ import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Appointment;
 import com.yt.jpa.hospitalManagement.entity.Doctor;
 import com.yt.jpa.hospitalManagement.entity.Patient;
+import com.yt.jpa.hospitalManagement.entity.User;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
+import com.yt.jpa.hospitalManagement.enums.Role;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
 import com.yt.jpa.hospitalManagement.repository.AppointmentRepository;
@@ -18,6 +20,7 @@ import com.yt.jpa.hospitalManagement.service.MedicalRecordService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,15 +44,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (doctorId != null && patientId != null) {
             // Rare case (admin advanced filter)
             appointments = appointmentRepository
-                    .findByDoctorIdAndPatientId(doctorId, patientId);
+                    .findByDoctor_IdAndPatient_Id(doctorId, patientId);
         }
         else if (doctorId != null) {
             appointments = appointmentRepository
-                    .findByDoctorId(doctorId);
+                    .findByDoctor_Id(doctorId);
         }
         else if (patientId != null) {
             appointments = appointmentRepository
-                    .findByPatientId(patientId);
+                    .findByPatient_Id(patientId);
         }
         else {
             // No filters, so all appointments
@@ -149,9 +152,19 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentResponseDto> findMyAppointments(Long id) {
-        List<Appointment> appointments = appointmentRepository.findByPatientIdOrDoctorId(id);
+    public List<AppointmentResponseDto> findMyAppointments(User user) {
+        List<Appointment> appointments;
+        if (user.getRoles().contains(Role.DOCTOR)) {
+            Long doctorId = user.getId(); // MapsId → safe
+            appointments = appointmentRepository.findByDoctor_Id(doctorId);
 
+        } else if (user.getRoles().contains(Role.PATIENT)) {
+            Long patientId = user.getId();
+            appointments = appointmentRepository.findByPatient_Id(patientId);
+
+        } else {
+            throw new AccessDeniedException("Invalid role");
+        }
         return appointments.stream()
                 .map(a -> modelMapper.map(a, AppointmentResponseDto.class))
                 .toList();

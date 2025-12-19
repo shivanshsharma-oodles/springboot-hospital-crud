@@ -7,9 +7,11 @@ import com.yt.jpa.hospitalManagement.dto.response.SignupResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Patient;
 import com.yt.jpa.hospitalManagement.entity.User;
 import com.yt.jpa.hospitalManagement.enums.Role;
+import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
 import com.yt.jpa.hospitalManagement.repository.PatientRepository;
 import com.yt.jpa.hospitalManagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,6 +41,10 @@ public class AuthService {
 
         // Authenticated
         User user = (User) authentication.getPrincipal(); // get the authenticated user details and it will help in creating token
+
+        if (user.getRoles().contains(Role.ADMIN)) {
+            throw new UnauthorizedActionException("No User Found");
+        }
 
         // Generate Token
         String token = authUtil.generateToken(user);
@@ -72,5 +78,22 @@ public class AuthService {
         return modelMapper.map(
                 user,
                 SignupResponseDto.class);
+    }
+
+    public @Nullable LoginResponseDto adminLogin(LoginRequestDto dto) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword())
+        );
+
+        User user = (User) authentication.getPrincipal();
+
+        // HARD CHECK
+        if (!user.getRoles().contains(Role.ADMIN)) {
+            throw new UnauthorizedActionException("Admin access only");
+        }
+
+        String token = authUtil.generateToken(user);
+
+        return new LoginResponseDto(token, user.getId());
     }
 }

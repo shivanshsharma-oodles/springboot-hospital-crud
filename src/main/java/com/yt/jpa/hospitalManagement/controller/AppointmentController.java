@@ -44,7 +44,7 @@ public class AppointmentController {
     public ResponseEntity<List<AppointmentResponseDto>> myAppointments() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(
-                appointmentService.findMyAppointments(user.getId())
+                appointmentService.findMyAppointments(user)
         );
     }
 

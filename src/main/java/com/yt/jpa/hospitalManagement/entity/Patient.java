@@ -29,7 +29,7 @@ public class Patient {
 //    @Column(length = 100, nullable = false)
 //    private String email;
 
-//    Linking to auth user (email, password, roles)
+    //    Linking to auth user (email, password, roles)
     @OneToOne
     @MapsId // it tells if patient does not exist without user, then there is no need of two ids in Patient so, hibernate will set id == user_id
     private User user;

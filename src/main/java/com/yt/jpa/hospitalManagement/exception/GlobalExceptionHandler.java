@@ -16,28 +16,38 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(value = ResourceNotFoundException.class)
-    public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiError> handleResourceNotFoundException(
+            ResourceNotFoundException e
+    ) {
+        ApiError apiError = new ApiError(e.getMessage(), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(apiError, apiError.getStatusCode());
     }
 
-    @ExceptionHandler(value = DuplicateResourceException.class)
-    public ResponseEntity<String> handleDuplicateResourceException(DuplicateResourceException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiError> handleDuplicateResourceException(
+            DuplicateResourceException e
+    ) {
+        ApiError apiError = new ApiError(e.getMessage(), HttpStatus.CONFLICT);
+        return new ResponseEntity<>(apiError, apiError.getStatusCode());
     }
 
-    @ExceptionHandler(value = UnauthorizedActionException.class)
-    public ResponseEntity<String> handleUnauthorizedActionException(UnauthorizedActionException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<ApiError> handleUnauthorizedActionException(
+            UnauthorizedActionException e
+    ) {
+        ApiError apiError = new ApiError(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(apiError, apiError.getStatusCode());
     }
-
 
     /* Validation Exception */
-    @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationFailedException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>(); // key = field name, value = validation message
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidationFailedException(
+            MethodArgumentNotValidException ex
+    ) {
+        Map<String, String> errors = new HashMap<>();
 
-    /*
+        /*
         getBindingResult() = Validation result object of spring.
         getFieldErrors() = It contains list of validation errors.
         [
@@ -47,25 +57,33 @@ public class GlobalExceptionHandler {
     */
 
         // for each error -> take field name and message of error -> put both in map.
-        ex.getBindingResult().getFieldErrors()
+
+        ex.getBindingResult()
+                .getFieldErrors()
                 .forEach(error ->
                         errors.put(error.getField(), error.getDefaultMessage())
                 );
 
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        ApiError apiError = new ApiError(
+                "Validation failed",
+                HttpStatus.BAD_REQUEST,
+                errors
+        );
+
+        return new ResponseEntity<>(apiError, apiError.getStatusCode());
     }
 
     /* Authentication Exception */
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ApiError> handleUsernameNotFoundException(UsernameNotFoundException ex) {
-        ApiError apiError = new ApiError("Username not found with username: "+ ex.getMessage(), HttpStatus.NOT_FOUND );
+        ApiError apiError = new ApiError("Username not found with username: " + ex.getMessage(), HttpStatus.NOT_FOUND);
 
         return new ResponseEntity<>(apiError, apiError.getStatusCode());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> handleAuthenticationException(AuthenticationException ex) {
-        ApiError apiError = new ApiError("Authentication Failed: "+ ex.getMessage(), HttpStatus.UNAUTHORIZED);
+        ApiError apiError = new ApiError("Authentication Failed: " + ex.getMessage(), HttpStatus.UNAUTHORIZED);
         return new ResponseEntity<>(apiError, apiError.getStatusCode());
     }
 
@@ -76,8 +94,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiError> handleAccessDeniedException(AccessDeniedException ex){
-        ApiError apiError = new ApiError("Access Denied: "+ ex.getMessage(), HttpStatus.FORBIDDEN);
+    public ResponseEntity<ApiError> handleAccessDeniedException(AccessDeniedException ex) {
+        ApiError apiError = new ApiError("Access Denied: " + ex.getMessage(), HttpStatus.FORBIDDEN);
         return new ResponseEntity<>(apiError, apiError.getStatusCode());
     }
 

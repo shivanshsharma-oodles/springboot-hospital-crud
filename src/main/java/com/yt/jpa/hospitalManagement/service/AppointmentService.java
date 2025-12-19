@@ -3,6 +3,7 @@ package com.yt.jpa.hospitalManagement.service;
 import com.yt.jpa.hospitalManagement.dto.request.AppointmentRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
+import com.yt.jpa.hospitalManagement.entity.User;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import org.jspecify.annotations.Nullable;
 
@@ -30,5 +31,5 @@ public interface AppointmentService {
 //    Update Appointment
     AppointmentResponseDto updateAppointment(Long doctorId, Long appointmentId, AppointmentStatus appointmentStatus);
 
-    List<AppointmentResponseDto> findMyAppointments(Long id);
+    List<AppointmentResponseDto> findMyAppointments(User user);
 }
