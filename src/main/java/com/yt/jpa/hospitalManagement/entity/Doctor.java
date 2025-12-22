@@ -58,5 +58,4 @@ public class Doctor {
 
     @Enumerated(EnumType.STRING)
     private DoctorStatus status = DoctorStatus.ACTIVE;
-
 }

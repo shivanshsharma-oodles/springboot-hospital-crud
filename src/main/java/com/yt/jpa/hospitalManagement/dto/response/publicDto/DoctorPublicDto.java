@@ -14,6 +14,6 @@ import lombok.RequiredArgsConstructor;
 public class DoctorPublicDto {
     private Long id;
     private String name;
-    private DoctorStatus doctorStatus;
+    private DoctorStatus status;
     private DepartmentResponseDto department;
 }

@@ -5,13 +5,21 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.sql.Update;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppointmentRequestDto {
+public class DoctorSlotRequestDto {
 
-    @NotNull(message = "Doctor slot is required")
-    private Long doctorSlotId;
+    @NotNull
+    private LocalDate date;
+
+    @NotNull
+    private LocalTime startTime;
+
+    @NotNull
+    private LocalTime endTime;
 }

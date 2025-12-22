@@ -5,7 +5,6 @@ import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
 import com.yt.jpa.hospitalManagement.entity.User;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -23,7 +22,7 @@ public interface AppointmentService {
     AppointmentResponseDto findById(Long id);
 
     /* Create Appointment (Status = PENDING) */
-    AppointmentResponseDto createAppointment(AppointmentRequestDto appointmentRequestDto);
+    AppointmentResponseDto createAppointment(Long id, AppointmentRequestDto appointmentRequestDto);
 
 //    Appointment
     AppointmentResponseDto completeAppointment(Long appointmentId, Long doctorId, MedicalRecordRequestDto medicalRecordRequestDto);

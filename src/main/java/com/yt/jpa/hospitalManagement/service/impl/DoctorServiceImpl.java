@@ -1,25 +1,33 @@
 package com.yt.jpa.hospitalManagement.service.impl;
 
+import com.yt.jpa.hospitalManagement.dto.request.AdminCreateDoctorRequestDto;
+import com.yt.jpa.hospitalManagement.dto.request.DoctorSlotRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.patch.DoctorPatchRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.DoctorRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.DoctorResponseDto;
+import com.yt.jpa.hospitalManagement.dto.response.DoctorSlotResponseDto;
 import com.yt.jpa.hospitalManagement.dto.response.publicDto.DoctorPublicDto;
 import com.yt.jpa.hospitalManagement.entity.Department;
 import com.yt.jpa.hospitalManagement.entity.Doctor;
+import com.yt.jpa.hospitalManagement.entity.DoctorSlot;
 import com.yt.jpa.hospitalManagement.entity.User;
+import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
+import com.yt.jpa.hospitalManagement.enums.Role;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.mapper.DoctorMapper;
-import com.yt.jpa.hospitalManagement.repository.DepartmentRepository;
-import com.yt.jpa.hospitalManagement.repository.DoctorRepository;
-import com.yt.jpa.hospitalManagement.repository.UserRepository;
+import com.yt.jpa.hospitalManagement.repository.*;
 import com.yt.jpa.hospitalManagement.service.DoctorService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -29,15 +37,18 @@ public class DoctorServiceImpl implements DoctorService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final DoctorMapper doctorMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final DoctorSlotRepository doctorSlotRepository;
+    private final AppointmentRepository appointmentRepository;
 
     /* Get All Doctors */
     @Override
-    public List<DoctorResponseDto> getAllDoctors() {
+    public List<DoctorPublicDto> getAllDoctors() {
         List<Doctor> doctors = doctorRepository.findByStatusNot(DoctorStatus.ARCHIVED);
 
 //        Convert Doctor to Doctor Response Dto
         return doctors.stream()
-                .map(d -> modelMapper.map(d, DoctorResponseDto.class))
+                .map(d -> modelMapper.map(d, DoctorPublicDto.class))
                 .toList();
     }
 
@@ -156,5 +167,111 @@ public class DoctorServiceImpl implements DoctorService {
 
         doctor.setStatus(DoctorStatus.ARCHIVED);
         doctorRepository.save(doctor);
+    }
+
+    @Override
+    @Transactional
+    public DoctorResponseDto createDoctorByAdmin(AdminCreateDoctorRequestDto dto) {
+
+        // 1 Validate uniqueness
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new DuplicateResourceException("Email already in use");
+        }
+
+        if (doctorRepository.existsByPhoneAndStatusNot(
+                dto.getPhone(), DoctorStatus.ARCHIVED)) {
+            throw new DuplicateResourceException("Doctor already exists with same phone");
+        }
+
+        // 2️Create USER (AUTH)
+        User user = User.builder()
+                .email(dto.getEmail())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .roles(Set.of(Role.DOCTOR))
+                .build();
+
+        userRepository.save(user);
+
+        // 3 Load Department
+        Department department = departmentRepository.findById(dto.getDepartmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
+
+        // Create DOCTOR (DOMAIN)
+        Doctor doctor = new Doctor();
+        doctor.setName(dto.getName());
+        doctor.setPhone(dto.getPhone());
+        doctor.setDob(dto.getDob());
+        doctor.setGender(dto.getGender());
+        doctor.setAddress(dto.getAddress());
+        doctor.setDepartment(department);
+        doctor.setUser(user);
+
+        doctorRepository.save(doctor);
+
+        return doctorMapper.toResponseDto(doctor);
+    }
+
+    @Override
+    public void createDoctorSlot(Long id, DoctorSlotRequestDto dto) {
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor does not exist"));
+
+//        Illegal Slot
+        if (dto.getStartTime().isAfter(dto.getEndTime())
+                || dto.getStartTime().equals(dto.getEndTime())) {
+            throw new IllegalArgumentException("Invalid slot timing");
+        }
+
+        // Prevent overlapping slots
+        boolean overlap = doctorSlotRepository
+                .existsByDoctorAndDateAndStartTimeLessThanAndEndTimeGreaterThan(
+                        doctor,
+                        dto.getDate(),
+                        dto.getEndTime(),
+                        dto.getStartTime()
+                );
+
+        if (overlap) {
+            throw new IllegalStateException("Slot overlaps with existing slot");
+        }
+        DoctorSlot slot = new DoctorSlot();
+        slot.setDoctor(doctor);
+        slot.setDate(dto.getDate());
+        slot.setStartTime(dto.getStartTime());
+        slot.setEndTime(dto.getEndTime());
+
+        doctorSlotRepository.save(slot);
+    }
+
+    @Override
+    public List<DoctorSlotResponseDto> getSlotsByDoctor(Long doctorId) {
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+
+        // Get booked / reserved slot IDs
+        List<Long> reservedSlotIds = appointmentRepository
+                .findDoctorSlotIdsByDoctorAndAppointmentStatusIn(
+                        doctor,
+                        List.of(
+                                AppointmentStatus.SCHEDULED,
+                                AppointmentStatus.PENDING
+                        )
+                );
+
+        // Fetch only FREE slots
+        List<DoctorSlot> slots = reservedSlotIds.isEmpty()
+                ? doctorSlotRepository.findByDoctorAndDateGreaterThanEqual(
+                doctor,
+                LocalDate.now()
+        )
+                : doctorSlotRepository.findByDoctorAndDateGreaterThanEqualAndIdNotIn(
+                doctor,
+                LocalDate.now(),
+                reservedSlotIds
+        );
+
+        return slots.stream()
+                .map(slot -> modelMapper.map(slot, DoctorSlotResponseDto.class))
+                .toList();
     }
 }

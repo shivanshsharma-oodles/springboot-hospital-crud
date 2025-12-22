@@ -48,15 +48,16 @@ public class AppointmentController {
         );
     }
 
+//    Patient Only
     @PostMapping("")
     public ResponseEntity<AppointmentResponseDto> create(
             @RequestBody AppointmentRequestDto dto
     ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        dto.setPatientId(user.getId());
+//        dto.setPatientId(user.getId());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(appointmentService.createAppointment(dto));
+                .body(appointmentService.createAppointment(user.getId(), dto));
     }
 
     /* ---------------- DOCTOR ---------------- */

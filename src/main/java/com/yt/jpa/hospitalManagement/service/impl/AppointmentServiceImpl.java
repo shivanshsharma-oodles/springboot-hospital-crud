@@ -3,10 +3,7 @@ package com.yt.jpa.hospitalManagement.service.impl;
 import com.yt.jpa.hospitalManagement.dto.request.AppointmentRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
-import com.yt.jpa.hospitalManagement.entity.Appointment;
-import com.yt.jpa.hospitalManagement.entity.Doctor;
-import com.yt.jpa.hospitalManagement.entity.Patient;
-import com.yt.jpa.hospitalManagement.entity.User;
+import com.yt.jpa.hospitalManagement.entity.*;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import com.yt.jpa.hospitalManagement.enums.Role;
@@ -14,6 +11,7 @@ import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
 import com.yt.jpa.hospitalManagement.repository.AppointmentRepository;
 import com.yt.jpa.hospitalManagement.repository.DoctorRepository;
+import com.yt.jpa.hospitalManagement.repository.DoctorSlotRepository;
 import com.yt.jpa.hospitalManagement.repository.PatientRepository;
 import com.yt.jpa.hospitalManagement.service.AppointmentService;
 import com.yt.jpa.hospitalManagement.service.MedicalRecordService;
@@ -31,6 +29,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
+    private final DoctorSlotRepository doctorSlotRepository;
 
     private final MedicalRecordService medicalRecordService;
 
@@ -76,22 +75,32 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     /* Create Appointment */
     @Override
-    public AppointmentResponseDto createAppointment(AppointmentRequestDto appointmentRequestDto){
-        Doctor doctor = doctorRepository.findByIdAndStatusNot(appointmentRequestDto.getDoctorId(), DoctorStatus.ARCHIVED)
-                .orElseThrow(() ->  new ResourceNotFoundException("Doctor Not Found"));
+    public AppointmentResponseDto createAppointment(Long patientId, AppointmentRequestDto appointmentRequestDto){
 
-        Patient patient = patientRepository.findById(appointmentRequestDto.getPatientId())
+        Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() ->  new ResourceNotFoundException("Patient Not Found"));
 
-//      appointment object
+        DoctorSlot slot = doctorSlotRepository.findById(appointmentRequestDto.getDoctorSlotId())
+                .orElseThrow(() -> new ResourceNotFoundException("Slot not found"));
+
+        // Prevent double booking
+        boolean alreadyBooked = appointmentRepository
+                .existsByDoctorSlotAndAppointmentStatusNot(
+                        slot,
+                        AppointmentStatus.REJECTED
+                );
+
+        if (alreadyBooked) {
+            throw new IllegalStateException("Slot already booked");
+        }
+
         Appointment appointment = new Appointment();
-
-//        Set Doctor & Patient from their respective ids
-        appointment.setDoctor(doctor);
+        appointment.setDoctor(slot.getDoctor());
         appointment.setPatient(patient);
-
-//        Set Appointment status
+        appointment.setDoctorSlot(slot);
         appointment.setAppointmentStatus(AppointmentStatus.PENDING);
+
+        appointmentRepository.save(appointment);
 
         return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);
     }

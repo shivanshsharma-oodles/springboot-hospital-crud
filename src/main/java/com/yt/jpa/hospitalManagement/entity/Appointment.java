@@ -30,5 +30,8 @@ public class Appointment {
 
     @OneToOne(mappedBy = "appointment" , cascade = CascadeType.ALL)
     private Bill bill;
+
+    @ManyToOne
+    private DoctorSlot doctorSlot;
 }
 

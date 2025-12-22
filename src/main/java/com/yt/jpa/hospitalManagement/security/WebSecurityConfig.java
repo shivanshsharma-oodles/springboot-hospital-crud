@@ -53,17 +53,23 @@ public class WebSecurityConfig {
                 // authorizeHttpRequests method is used to restrict access based on the HttpServletRequest
                 .authorizeHttpRequests(auth -> auth
 
-//                        Auth
+//                        // Auth
+                                .requestMatchers("/auth/me").authenticated() // authenticated only
                                 .requestMatchers("/auth/**").permitAll() // Public endpoints
 
 //                        Public Read-Only Endpoints
                                 .requestMatchers(HttpMethod.GET,
                                         "/departments/**",
-                                        "/doctors/**"
+                                        "/doctors",
+                                        "/doctors/*"
                                 ).permitAll()
 
 //                        Patient & Doctor Only
                                 .requestMatchers("/appointments/me").hasAnyRole("DOCTOR", "PATIENT")
+
+//                        PATIENT AND ADMIN
+                                .requestMatchers(HttpMethod.GET, "/doctors/*/slots").hasAnyRole("ADMIN", "PATIENT")
+
 
 //                        Patient Only
                                 .requestMatchers(
@@ -95,7 +101,8 @@ public class WebSecurityConfig {
                                 // Create Bill
                                 .requestMatchers(
                                         HttpMethod.POST,
-                                        "/bills"
+                                        "/bills",
+                                        "/doctors/slots"
                                 ).hasRole("DOCTOR")
 
                                 // Get and Update Doctor

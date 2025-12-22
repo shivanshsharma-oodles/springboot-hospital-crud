@@ -3,6 +3,7 @@ package com.yt.jpa.hospitalManagement.dto.response;
 import com.yt.jpa.hospitalManagement.dto.summary.BillSummaryDto;
 import com.yt.jpa.hospitalManagement.dto.summary.DoctorSummaryDto;
 import com.yt.jpa.hospitalManagement.dto.summary.PatientSummaryDto;
+import com.yt.jpa.hospitalManagement.entity.DoctorSlot;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,5 +18,6 @@ public class AppointmentResponseDto {
 
     private DoctorSummaryDto doctor;
     private PatientSummaryDto patient;
+    private DoctorSlotResponseDto slot;
 //    private BillSummaryDto bill; // No need of bill in here
 }
