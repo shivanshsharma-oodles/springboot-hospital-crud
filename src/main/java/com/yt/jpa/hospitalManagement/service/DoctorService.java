@@ -17,6 +17,8 @@ public interface DoctorService {
     DoctorResponseDto getDoctorsById(Long id);
     DoctorPublicDto getDoctorPubliclyById(Long id);
 
+    List<DoctorPublicDto> getDoctorsByDepartmentId(Long departmentId);
+
     DoctorResponseDto createDoctor(String email, DoctorRequestDto doctorRequestDto);
 
     DoctorResponseDto updateDoctor(Long id, DoctorRequestDto doctorRequestDto);
@@ -30,4 +32,5 @@ public interface DoctorService {
     void createDoctorSlot(Long userId,  DoctorSlotRequestDto dto);
 
     List<DoctorSlotResponseDto> getSlotsByDoctor(Long doctorId);
+
 }

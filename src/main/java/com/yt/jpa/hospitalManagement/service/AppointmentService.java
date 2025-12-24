@@ -30,5 +30,8 @@ public interface AppointmentService {
 //    Update Appointment
     AppointmentResponseDto updateAppointment(Long doctorId, Long appointmentId, AppointmentStatus appointmentStatus);
 
+//    Cancel Appointment
+    void cancelAppointment(Long userId, Long appointmentId);
+
     List<AppointmentResponseDto> findMyAppointments(User user);
 }

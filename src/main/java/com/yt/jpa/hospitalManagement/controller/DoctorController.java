@@ -49,6 +49,13 @@ public class DoctorController {
         );
     }
 
+//  Doctor by department id.
+    @GetMapping("/department/{departmentId}")
+    public ResponseEntity<List<DoctorPublicDto>> findAllForDepartment(
+            @PathVariable Long departmentId
+    ) {
+        return ResponseEntity.ok(doctorService.getDoctorsByDepartmentId(departmentId));
+    }
 
     //    ADMIN ONLY
     @GetMapping("/admin/{id}")
@@ -97,9 +104,18 @@ public class DoctorController {
                 .body(doctorService.getDoctorsById(user.getId()));
     }
 
+    @GetMapping("/slots")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<List<DoctorSlotResponseDto>> getAllDoctorSlotsByDoctor() {
+        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(
+                doctorService.getSlotsByDoctor(user.getId())
+        );
+    }
+
     @PostMapping("/slots")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<Void> createDoctorByAdmin(
+    public ResponseEntity<Void> createSlot(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody DoctorSlotRequestDto dto
     ) {

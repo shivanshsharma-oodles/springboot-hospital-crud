@@ -7,6 +7,8 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,9 +16,9 @@ public class PatientResponseDto {
     private Long id;
     private String name;
     private String email;
-    private Address address;
     private String phone;
     private LocalDate dob;
     private Gender gender;
+    private Address address;
     private LocalDateTime createdAt;
 }

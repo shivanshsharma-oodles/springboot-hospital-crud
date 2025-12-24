@@ -5,9 +5,12 @@ import com.yt.jpa.hospitalManagement.entity.Doctor;
 import com.yt.jpa.hospitalManagement.entity.DoctorSlot;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment,Long> {
@@ -16,9 +19,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment,Long> {
     List<Appointment> findByDoctor_IdAndPatient_Id(Long doctorId, Long patientId);
     boolean existsByDoctorSlotAndAppointmentStatusNot(DoctorSlot doctorSlot, AppointmentStatus appointmentStatus);
 
+    @Query("SELECT a.doctorSlot.id FROM Appointment a WHERE a.doctor = :doctor AND a.appointmentStatus IN :statuses")
     List<Long> findDoctorSlotIdsByDoctorAndAppointmentStatusIn(
-            Doctor doctor,
-            List<AppointmentStatus> statuses
+            @Param("doctor") Doctor doctor,
+            @Param("statuses")List<AppointmentStatus> statuses
     );
 
 }

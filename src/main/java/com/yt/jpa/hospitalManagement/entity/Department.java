@@ -21,7 +21,7 @@ public class Department {
     @Column(length = 50, nullable = false)
     private String name;
 
-    @Column(length = 100,  nullable = false)
+    @Column(length = 1000,  nullable = false)
     private String description;
 
     @Enumerated(EnumType.STRING)

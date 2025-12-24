@@ -44,8 +44,16 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        JwtAuthenticationEntryPoint entryPoint = new JwtAuthenticationEntryPoint();
+        JwtAccessDeniedHandler accessDeniedHandler = new JwtAccessDeniedHandler();
         //        This httpSecurity object is used to configure web based security for specific http requests.
         httpSecurity
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(entryPoint)
+                                .accessDeniedHandler(accessDeniedHandler)
+
+
+                        )
                 .cors(Customizer.withDefaults())
                 .csrf(csrfConfig -> csrfConfig.disable()) // csrf disabled
                 .sessionManagement(sessionConfig -> // session management configuration
@@ -61,11 +69,13 @@ public class WebSecurityConfig {
                                 .requestMatchers(HttpMethod.GET,
                                         "/departments/**",
                                         "/doctors",
-                                        "/doctors/*"
+                                        "/doctors/*",
+                                        "/doctors/department/*"
                                 ).permitAll()
 
 //                        Patient & Doctor Only
                                 .requestMatchers("/appointments/me").hasAnyRole("DOCTOR", "PATIENT")
+                                .requestMatchers(HttpMethod.PUT, "/appointments/*/cancel").hasAnyRole("DOCTOR", "PATIENT")
 
 //                        PATIENT AND ADMIN
                                 .requestMatchers(HttpMethod.GET, "/doctors/*/slots").hasAnyRole("ADMIN", "PATIENT")
@@ -106,7 +116,7 @@ public class WebSecurityConfig {
                                 ).hasRole("DOCTOR")
 
                                 // Get and Update Doctor
-                                .requestMatchers(HttpMethod.GET, "/doctors/me").hasRole("DOCTOR")
+                                .requestMatchers(HttpMethod.GET, "/doctors/me", "/doctors/slots").hasRole("DOCTOR")
                                 .requestMatchers(HttpMethod.PATCH, "/doctors").hasRole("DOCTOR")
                                 .requestMatchers(HttpMethod.PUT, "/doctors").hasRole("DOCTOR")
 
@@ -132,6 +142,7 @@ public class WebSecurityConfig {
 //                              .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
         ;
 
         return httpSecurity.build();

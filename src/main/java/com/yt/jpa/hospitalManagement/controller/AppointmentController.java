@@ -6,9 +6,11 @@ import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
 import com.yt.jpa.hospitalManagement.entity.User;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.service.AppointmentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,13 +66,14 @@ public class AppointmentController {
 
     // DOCTOR: update appointment status
     @PutMapping("/{id}/status")
+
     public ResponseEntity<AppointmentResponseDto> updateAppointment(
             @PathVariable Long id,
-            @RequestBody AppointmentStatus appointmentStatus
+            @Valid @RequestBody AppointmentStatus appointmentStatus
             ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity
-                .ok(appointmentService.updateAppointment(id, user.getId(), appointmentStatus));
+                .ok(appointmentService.updateAppointment(user.getId(), id, appointmentStatus));
     }
 
     @PutMapping("/{id}/complete")
@@ -81,5 +84,17 @@ public class AppointmentController {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity
                 .ok(appointmentService.completeAppointment(id, user.getId(), medicalRecordRequestDto ));
+    }
+
+//    Cancel Appointment
+    @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'PATIENT)")
+    public ResponseEntity<Void> cancelScheduledAppointment(
+            @PathVariable Long id
+            ) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        appointmentService.cancelAppointment(user.getId(), id);
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED).build();
     }
 }

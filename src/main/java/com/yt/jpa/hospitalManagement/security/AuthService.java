@@ -56,16 +56,30 @@ public class AuthService {
     public SignupResponseDto registerUser(SignupRequestDto dto){
         User user = userRepository.findByEmail(dto.getEmail()).orElse(null);
 
-        if(user != null){
-            throw new RuntimeException("User already exists with email: " + dto.getEmail());
+        if (user != null) {
+
+            // already a patient -> block
+            if (user.getRoles().contains(Role.PATIENT)) {
+                throw new RuntimeException(
+                        "Patient already exists with email: " + dto.getEmail()
+                );
+            }
+
+            // doctor / admin -> just ADD role
+            user.getRoles().add(Role.PATIENT);
+            user = userRepository.save(user);
+
+        } else {
+//            new user
+            user = userRepository.save(
+                    User.builder()
+                            .email(dto.getEmail())
+                            .password(passwordEncoder.encode(dto.getPassword()))
+                            .roles(Set.of(Role.PATIENT))
+                            .build()
+            );
         }
 
-        user = userRepository.save(User.builder()
-                .email(dto.getEmail())
-                .password(passwordEncoder.encode(dto.getPassword()))
-                .roles(Set.of(Role.PATIENT)) // default role
-                .build()
-        );
 
         Patient patient = Patient.builder()
                 .name(dto.getName())

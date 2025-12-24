@@ -60,6 +60,18 @@ public class DoctorServiceImpl implements DoctorService {
         return modelMapper.map(doctor, DoctorPublicDto.class);
     }
 
+    @Override
+    public List<DoctorPublicDto> getDoctorsByDepartmentId(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Department does not exist."));
+
+        List<Doctor> doctors = doctorRepository.findByDepartmentAndStatusNot(department, DoctorStatus.ARCHIVED);
+
+        return doctors.stream()
+                .map(d -> modelMapper.map(d, DoctorPublicDto.class))
+                .toList();
+    }
+
     /* Get Doctor(Own) By id */
     @Override
     public DoctorResponseDto getDoctorsById(Long id) {

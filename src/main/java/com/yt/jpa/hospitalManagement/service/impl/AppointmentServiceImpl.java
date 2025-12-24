@@ -5,7 +5,6 @@ import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
 import com.yt.jpa.hospitalManagement.entity.*;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
-import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import com.yt.jpa.hospitalManagement.enums.Role;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
@@ -100,8 +99,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setDoctorSlot(slot);
         appointment.setAppointmentStatus(AppointmentStatus.PENDING);
 
-        appointmentRepository.save(appointment);
-
         return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);
     }
 
@@ -158,6 +155,29 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setAppointmentStatus(appointmentStatus);
 
         return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);
+    }
+
+    @Override
+    public void cancelAppointment(Long userId, Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("appointment not found"));
+
+        if(!appointment.getDoctor().getId().equals(userId)
+                && !appointment.getPatient().getId().equals(userId)
+        ){
+            throw new UnauthorizedActionException("Unauthorized Action");
+        }
+
+        AppointmentStatus currentStatus = appointment.getAppointmentStatus();
+        if (currentStatus == AppointmentStatus.CANCELLED
+                || currentStatus == AppointmentStatus.COMPLETED) {
+            throw new IllegalStateException("Appointment cannot be cancelled");
+        }
+
+        // Mark appointment completed
+        appointment.setAppointmentStatus(AppointmentStatus.CANCELLED);
+        appointmentRepository.save(appointment);
+//         return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);
     }
 
     @Override

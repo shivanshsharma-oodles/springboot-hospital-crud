@@ -1,5 +1,6 @@
 package com.yt.jpa.hospitalManagement.repository;
 
+import com.yt.jpa.hospitalManagement.entity.Department;
 import com.yt.jpa.hospitalManagement.entity.Doctor;
 import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,4 +23,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 //    All Doctors with status != archived
     List<Doctor> findByStatusNot(DoctorStatus status);
     Optional<Doctor> findByIdAndStatusNot(Long id, DoctorStatus status);
+
+    List<Doctor> findByDepartmentAndStatusNot(Department department, DoctorStatus status);
 }
