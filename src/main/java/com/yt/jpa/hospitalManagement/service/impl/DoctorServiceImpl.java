@@ -7,15 +7,13 @@ import com.yt.jpa.hospitalManagement.dto.request.DoctorRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.DoctorResponseDto;
 import com.yt.jpa.hospitalManagement.dto.response.DoctorSlotResponseDto;
 import com.yt.jpa.hospitalManagement.dto.response.publicDto.DoctorPublicDto;
-import com.yt.jpa.hospitalManagement.entity.Department;
-import com.yt.jpa.hospitalManagement.entity.Doctor;
-import com.yt.jpa.hospitalManagement.entity.DoctorSlot;
-import com.yt.jpa.hospitalManagement.entity.User;
+import com.yt.jpa.hospitalManagement.entity.*;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import com.yt.jpa.hospitalManagement.enums.Role;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
+import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
 import com.yt.jpa.hospitalManagement.mapper.DoctorMapper;
 import com.yt.jpa.hospitalManagement.repository.*;
 import com.yt.jpa.hospitalManagement.service.DoctorService;
@@ -286,4 +284,30 @@ public class DoctorServiceImpl implements DoctorService {
                 .map(slot -> modelMapper.map(slot, DoctorSlotResponseDto.class))
                 .toList();
     }
+
+    @Transactional
+    @Override
+    public void deleteDoctorSlot(Long doctorId, Long slotId) {
+
+        DoctorSlot slot = doctorSlotRepository.findById(slotId)
+                .orElseThrow(() -> new ResourceNotFoundException("Slot does not exist"));
+
+        if(!slot.getDoctor().getId().equals(doctorId)) {
+            throw  new UnauthorizedActionException("Can not delete another doctor's slot");
+        }
+
+//        Prevent Delete on booked slot
+        boolean alreadyBooked = appointmentRepository
+                .existsByDoctorSlotAndAppointmentStatusIn(
+                        slot,
+                        List.of(AppointmentStatus.PENDING, AppointmentStatus.SCHEDULED)
+                );
+
+        if (alreadyBooked) {
+            throw new IllegalStateException("Slot already booked, and can not be deleted");
+        }
+
+        doctorSlotRepository.delete(slot);
+    }
+
 }

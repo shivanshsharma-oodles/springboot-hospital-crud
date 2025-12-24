@@ -123,6 +123,17 @@ public class DoctorController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    /* Delete Slot */
+    @DeleteMapping("/slots/{id}")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<Void> deleteSlot(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id
+    ) {
+        doctorService.deleteDoctorSlot(user.getId(), id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     @PutMapping("")
     public ResponseEntity<DoctorResponseDto> updateDoctor(
             @Valid @RequestBody DoctorRequestDto doctorRequestDto

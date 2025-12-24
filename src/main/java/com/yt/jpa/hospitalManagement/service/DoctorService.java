@@ -7,7 +7,6 @@ import com.yt.jpa.hospitalManagement.dto.request.DoctorRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.DoctorResponseDto;
 import com.yt.jpa.hospitalManagement.dto.response.DoctorSlotResponseDto;
 import com.yt.jpa.hospitalManagement.dto.response.publicDto.DoctorPublicDto;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -33,4 +32,5 @@ public interface DoctorService {
 
     List<DoctorSlotResponseDto> getSlotsByDoctor(Long doctorId);
 
+    void deleteDoctorSlot(Long doctorId, Long slotId);
 }

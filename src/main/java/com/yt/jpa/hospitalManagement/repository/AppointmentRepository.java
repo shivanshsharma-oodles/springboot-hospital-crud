@@ -18,11 +18,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment,Long> {
     List<Appointment> findByPatient_Id(Long id);
     List<Appointment> findByDoctor_IdAndPatient_Id(Long doctorId, Long patientId);
     boolean existsByDoctorSlotAndAppointmentStatusNot(DoctorSlot doctorSlot, AppointmentStatus appointmentStatus);
+    boolean existsByDoctorSlotAndAppointmentStatusIn(
+            DoctorSlot doctorSlot,
+            List<AppointmentStatus> statuses
+    );
 
     @Query("SELECT a.doctorSlot.id FROM Appointment a WHERE a.doctor = :doctor AND a.appointmentStatus IN :statuses")
     List<Long> findDoctorSlotIdsByDoctorAndAppointmentStatusIn(
             @Param("doctor") Doctor doctor,
             @Param("statuses")List<AppointmentStatus> statuses
     );
+
 
 }

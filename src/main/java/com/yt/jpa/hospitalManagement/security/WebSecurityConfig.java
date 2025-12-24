@@ -115,6 +115,12 @@ public class WebSecurityConfig {
                                         "/doctors/slots"
                                 ).hasRole("DOCTOR")
 
+                                // Delete Slot
+                                .requestMatchers(
+                                        HttpMethod.DELETE,
+                                        "/doctors/slots/*"
+                                ).hasRole("DOCTOR")
+
                                 // Get and Update Doctor
                                 .requestMatchers(HttpMethod.GET, "/doctors/me", "/doctors/slots").hasRole("DOCTOR")
                                 .requestMatchers(HttpMethod.PATCH, "/doctors").hasRole("DOCTOR")
