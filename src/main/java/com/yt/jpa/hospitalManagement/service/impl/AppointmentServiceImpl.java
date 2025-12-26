@@ -5,6 +5,7 @@ import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
 import com.yt.jpa.hospitalManagement.entity.*;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
+import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import com.yt.jpa.hospitalManagement.enums.Role;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
@@ -84,10 +85,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Prevent double booking
         boolean alreadyBooked = appointmentRepository
-                .existsByDoctorSlotAndAppointmentStatusNot(
+                .existsByDoctorSlotAndAppointmentStatusIn(
                         slot,
-                        AppointmentStatus.REJECTED
+                        List.of(AppointmentStatus.PENDING, AppointmentStatus.SCHEDULED)
                 );
+
 
         if (alreadyBooked) {
             throw new IllegalStateException("Slot already booked");
@@ -162,6 +164,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("appointment not found"));
 
+//        boolean isDoctor = doctorRepository.existsByIdAndStatusNot(userId, DoctorStatus.ARCHIVED);
+//        boolean isPatient = patientRepository.existsById(userId);
+
         if(!appointment.getDoctor().getId().equals(userId)
                 && !appointment.getPatient().getId().equals(userId)
         ){
@@ -174,7 +179,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new IllegalStateException("Appointment cannot be cancelled");
         }
 
-        // Mark appointment completed
+        // Mark appointment cancelled
         appointment.setAppointmentStatus(AppointmentStatus.CANCELLED);
         appointmentRepository.save(appointment);
 //         return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);

@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 
@@ -258,6 +259,9 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
 
+        LocalDate today = LocalDate.now();
+        LocalTime timeNow = LocalTime.now();
+
         // Get booked / reserved slot IDs
         List<Long> reservedSlotIds = appointmentRepository
                 .findDoctorSlotIdsByDoctorAndAppointmentStatusIn(
@@ -281,6 +285,16 @@ public class DoctorServiceImpl implements DoctorService {
         );
 
         return slots.stream()
+                .filter(slot -> {
+//                        future date -> allow
+                    if (slot.getDate().isAfter(today)) return true;
+
+                    // same date → only show if slot starts after 15min from now
+                    if (slot.getDate().isEqual(today)) {
+                        return slot.getStartTime().isAfter(timeNow.plusMinutes(15));
+                    }
+                    return false;
+                })
                 .map(slot -> modelMapper.map(slot, DoctorSlotResponseDto.class))
                 .toList();
     }

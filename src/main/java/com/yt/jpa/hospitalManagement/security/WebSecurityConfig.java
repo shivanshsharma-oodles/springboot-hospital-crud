@@ -53,7 +53,7 @@ public class WebSecurityConfig {
                                 .accessDeniedHandler(accessDeniedHandler)
 
 
-                        )
+                )
                 .cors(Customizer.withDefaults())
                 .csrf(csrfConfig -> csrfConfig.disable()) // csrf disabled
                 .sessionManagement(sessionConfig -> // session management configuration

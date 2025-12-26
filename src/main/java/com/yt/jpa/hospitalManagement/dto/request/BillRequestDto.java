@@ -9,12 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BillRequestDto {
-//    @NotNull
-//    private Long patientId;
-
-    @NotNull
-    private Long appointmentId;
-
     @NotNull
     private Double amount;
 }

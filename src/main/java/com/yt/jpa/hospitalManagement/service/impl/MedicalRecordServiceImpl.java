@@ -79,9 +79,6 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
 
-        if(appointment.getAppointmentStatus() != AppointmentStatus.COMPLETED){
-            throw new RuntimeException("Medical record can only be created for completed appointments");
-        }
         if(!appointment.getPatient().getId().equals(patient.getId())){
             throw new RuntimeException("This appointment does not belong to this patient");
         }

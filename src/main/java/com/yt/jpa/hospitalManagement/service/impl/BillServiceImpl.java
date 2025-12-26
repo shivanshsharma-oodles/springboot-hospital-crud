@@ -4,7 +4,6 @@ import com.yt.jpa.hospitalManagement.dto.request.BillRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.BillResponseDto;
 import com.yt.jpa.hospitalManagement.entity.Appointment;
 import com.yt.jpa.hospitalManagement.entity.Bill;
-import com.yt.jpa.hospitalManagement.entity.Patient;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
@@ -98,9 +97,9 @@ public class BillServiceImpl implements BillService {
 
     /* Create Bill */
     @Override
-    public BillResponseDto createBill(Long doctorId, BillRequestDto billRequestDto){
+    public BillResponseDto createBill(Long doctorId, Long appointmentId, BillRequestDto billRequestDto){
 
-        Appointment appointment = appointmentRepository.findById(billRequestDto.getAppointmentId())
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
         if (!appointment.getDoctor().getId().equals(doctorId)) {
@@ -115,7 +114,7 @@ public class BillServiceImpl implements BillService {
         }
 
 //      Prevent duplicate bill
-        if(billRepository.findByAppointmentId(billRequestDto.getAppointmentId()).isPresent()){
+        if(billRepository.findByAppointmentId(appointmentId).isPresent()){
             throw new DuplicateResourceException("Bill already exists for this appointment Id");
         }
 

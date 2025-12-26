@@ -20,6 +20,8 @@ public class MedicalRecordResponseDto {
 
     private String symptoms;
     private String diagnosis;
+    private String treatment;
+    private String prescription;
     private LocalDate followUpDate;
 
     private Double temperature;

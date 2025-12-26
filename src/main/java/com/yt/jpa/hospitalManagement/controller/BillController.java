@@ -67,10 +67,13 @@ public class BillController {
     /* ---------------- DOCTOR ---------------- */
 
 // Doctor: Create Bill
-    @PostMapping("")
-    public ResponseEntity<BillResponseDto> createBill(@RequestBody BillRequestDto billRequestDto) {
+    @PostMapping("/{appointmentId}")
+    public ResponseEntity<BillResponseDto> createBill(
+            @PathVariable Long appointmentId,
+            @RequestBody BillRequestDto billRequestDto
+    ) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity
-                .ok(billService.createBill(user.getId(), billRequestDto));
+                .ok(billService.createBill(user.getId(), appointmentId, billRequestDto));
     }
 }

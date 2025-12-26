@@ -22,5 +22,5 @@ public interface BillService {
     BillResponseDto findBillByAppointmentId(Long patientId, Long appointmentId);
 
     /* Create Bill */
-    BillResponseDto createBill(Long doctorId, BillRequestDto billRequestDto);
+    BillResponseDto createBill(Long doctorId, Long appointmentId, BillRequestDto billRequestDto);
 }

@@ -20,6 +20,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     boolean existsByUser_EmailAndStatusNotAndIdNot(String email, DoctorStatus status, Long id);
     boolean existsByPhoneAndStatusNotAndIdNot(String phone,DoctorStatus status, Long id);
 
+    boolean existsByIdAndStatusNot(Long id, DoctorStatus status);
+
 //    All Doctors with status != archived
     List<Doctor> findByStatusNot(DoctorStatus status);
     Optional<Doctor> findByIdAndStatusNot(Long id, DoctorStatus status);

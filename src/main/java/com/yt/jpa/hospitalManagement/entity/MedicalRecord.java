@@ -33,10 +33,8 @@ public class MedicalRecord {
     private String symptoms;
     private String diagnosis;
     private String treatment;
-    private String prescriptions;
-
+    private String prescription;
     private LocalDate followUpDate;
-
     private Double temperature;
     private Integer pulse;
     private Integer bpSystolic;
