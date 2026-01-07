@@ -262,13 +262,14 @@ public class DoctorServiceImpl implements DoctorService {
         LocalDate today = LocalDate.now();
         LocalTime timeNow = LocalTime.now();
 
-        // Get booked / reserved slot IDs
+        // Get booked / reserved / completed slot IDs
         List<Long> reservedSlotIds = appointmentRepository
                 .findDoctorSlotIdsByDoctorAndAppointmentStatusIn(
                         doctor,
                         List.of(
                                 AppointmentStatus.SCHEDULED,
-                                AppointmentStatus.PENDING
+                                AppointmentStatus.PENDING,
+                                AppointmentStatus.COMPLETED
                         )
                 );
 
@@ -314,7 +315,7 @@ public class DoctorServiceImpl implements DoctorService {
         boolean alreadyBooked = appointmentRepository
                 .existsByDoctorSlotAndAppointmentStatusIn(
                         slot,
-                        List.of(AppointmentStatus.PENDING, AppointmentStatus.SCHEDULED)
+                        List.of(AppointmentStatus.PENDING, AppointmentStatus.SCHEDULED, AppointmentStatus.COMPLETED)
                 );
 
         if (alreadyBooked) {

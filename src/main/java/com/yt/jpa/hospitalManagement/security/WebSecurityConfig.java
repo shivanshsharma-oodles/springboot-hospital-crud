@@ -76,6 +76,7 @@ public class WebSecurityConfig {
 //                        Patient & Doctor Only
                                 .requestMatchers("/appointments/me").hasAnyRole("DOCTOR", "PATIENT")
                                 .requestMatchers(HttpMethod.PUT, "/appointments/*/cancel").hasAnyRole("DOCTOR", "PATIENT")
+                                .requestMatchers(HttpMethod.GET, "/medical-records/get/*").hasAnyRole("DOCTOR", "PATIENT")
 
 //                        PATIENT AND ADMIN
                                 .requestMatchers(HttpMethod.GET, "/doctors/*/slots").hasAnyRole("ADMIN", "PATIENT")

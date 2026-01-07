@@ -3,9 +3,9 @@ package com.yt.jpa.hospitalManagement.service.impl;
 import com.yt.jpa.hospitalManagement.dto.request.AppointmentRequestDto;
 import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.AppointmentResponseDto;
+import com.yt.jpa.hospitalManagement.dto.response.MedicalRecordResponseDto;
 import com.yt.jpa.hospitalManagement.entity.*;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
-import com.yt.jpa.hospitalManagement.enums.DoctorStatus;
 import com.yt.jpa.hospitalManagement.enums.Role;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
@@ -21,6 +21,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -77,6 +79,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public AppointmentResponseDto createAppointment(Long patientId, AppointmentRequestDto appointmentRequestDto){
 
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() ->  new ResourceNotFoundException("Patient Not Found"));
 
@@ -84,14 +89,20 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Slot not found"));
 
         // Prevent double booking
-        boolean alreadyBooked = appointmentRepository
-                .existsByDoctorSlotAndAppointmentStatusIn(
+        boolean blocked = appointmentRepository
+                .existsByDoctorSlotAndAppointmentStatusNotIn(
                         slot,
-                        List.of(AppointmentStatus.PENDING, AppointmentStatus.SCHEDULED)
+                        List.of(AppointmentStatus.REJECTED, AppointmentStatus.CANCELLED)
                 );
 
+        if(slot.getDate().isBefore(today)
+            || (slot.getDate().isEqual(today) && slot.getStartTime().isBefore(now.plusMinutes(15)))
+        ){
+            throw new IllegalStateException("Slot time already passed");
 
-        if (alreadyBooked) {
+        }
+
+        if (blocked) {
             throw new IllegalStateException("Slot already booked");
         }
 
@@ -121,7 +132,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // Create medical record
-        medicalRecordService.createMedicalRecord(
+         MedicalRecordResponseDto record = medicalRecordService.createMedicalRecord(
                 appointmentId,
                 doctorId,
                 appointment.getPatient().getId(),
@@ -130,8 +141,14 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Mark appointment completed
         appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
+        Appointment savedAppointment = appointmentRepository.save(appointment);
 
-        return modelMapper.map(appointmentRepository.save(appointment), AppointmentResponseDto.class);
+        // 3. Map to DTO and MANUALLY set the record ID for this specific response
+        // (Because the 'appointment' object in memory might not have refreshed the @OneToOne link yet)
+        AppointmentResponseDto response = modelMapper.map(savedAppointment, AppointmentResponseDto.class);
+        response.setMedicalRecordId(record.getId());
+
+        return response;
     }
 
 

@@ -9,6 +9,7 @@ import com.yt.jpa.hospitalManagement.entity.Patient;
 import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
+import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
 import com.yt.jpa.hospitalManagement.repository.AppointmentRepository;
 import com.yt.jpa.hospitalManagement.repository.DoctorRepository;
 import com.yt.jpa.hospitalManagement.repository.MedicalRecordRepository;
@@ -66,6 +67,22 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         return modelMapper.map(med, MedicalRecordResponseDto.class);
     }
 
+//    Get Medical Record of own by id
+    @Override
+    public MedicalRecordResponseDto findMedicalRecordById(Long userId, Long id) {
+        MedicalRecord med = medicalRecordRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
+
+        boolean isDoctor = med.getDoctor().getId().equals(userId);
+        boolean isPatient = med.getPatient().getId().equals(userId);
+
+        if (!isDoctor && !isPatient) {
+            throw new UnauthorizedActionException("You can not access this record.");
+        }
+
+        return modelMapper.map(med, MedicalRecordResponseDto.class);
+    }
+
     /* Create Medical Record */
     @Override
     public MedicalRecordResponseDto createMedicalRecord(Long appointmentId, Long doctorId, Long patientId, MedicalRecordRequestDto dto){
@@ -93,6 +110,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
         record.setSymptoms(dto.getSymptoms());
         record.setDiagnosis(dto.getDiagnosis());
+        record.setPrescription(dto.getPrescription());
+        record.setTreatment(dto.getTreatment());
         record.setFollowUpDate(dto.getFollowUpDate());
         record.setTemperature(dto.getTemperature());
         record.setPulse(dto.getPulse());

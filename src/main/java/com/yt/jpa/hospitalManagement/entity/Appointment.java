@@ -33,5 +33,8 @@ public class Appointment {
 
     @ManyToOne
     private DoctorSlot doctorSlot;
+
+    @OneToOne(mappedBy = "appointment")
+    private MedicalRecord medicalRecord;
 }
 

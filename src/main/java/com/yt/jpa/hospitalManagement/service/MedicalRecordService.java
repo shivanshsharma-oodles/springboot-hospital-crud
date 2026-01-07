@@ -15,6 +15,9 @@ public interface MedicalRecordService {
     /* Get Medical Record by id */
     MedicalRecordResponseDto findMedicalRecordById(Long id);
 
+    /* Get Medical Record of Own by id */
+    MedicalRecordResponseDto findMedicalRecordById(Long userId, Long id);
+
     /* Create Medical Record */
     MedicalRecordResponseDto createMedicalRecord(Long appointmentId, Long DoctorId, Long patientId, MedicalRecordRequestDto medicalRecordRequestDto);
 }
