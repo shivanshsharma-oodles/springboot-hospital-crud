@@ -2,6 +2,7 @@ package com.yt.jpa.hospitalManagement.controller;
 
 import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.MedicalRecordResponseDto;
+import com.yt.jpa.hospitalManagement.dto.summary.MedicalRecordSummaryDto;
 import com.yt.jpa.hospitalManagement.entity.User;
 import com.yt.jpa.hospitalManagement.service.MedicalRecordService;
 import jakarta.validation.Valid;
@@ -31,9 +32,16 @@ public class MedicalRecordController {
     }
 
     //    Get Medical Records of all doctors by doctor_id
-    @GetMapping("/doctor/{doctorId}")
+    @GetMapping("/admin/doctor/{doctorId}")
     public ResponseEntity<List<MedicalRecordResponseDto>> getRecordsByDoctor(@PathVariable Long doctorId) {
         return ResponseEntity.ok(medicalRecordService.findAllByDoctorId(doctorId));
+    }
+
+//    Get your own all medical records
+    @GetMapping("/me")
+    public ResponseEntity<List<MedicalRecordSummaryDto>> getMyRecords() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(medicalRecordService.findAllByUserId(user.getId()));
     }
 
 //    Get Own Medical Record By id.

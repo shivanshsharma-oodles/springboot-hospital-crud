@@ -2,6 +2,8 @@ package com.yt.jpa.hospitalManagement.service;
 
 import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.MedicalRecordResponseDto;
+import com.yt.jpa.hospitalManagement.dto.summary.MedicalRecordSummaryDto;
+
 import java.util.List;
 
 public interface MedicalRecordService {
@@ -20,4 +22,6 @@ public interface MedicalRecordService {
 
     /* Create Medical Record */
     MedicalRecordResponseDto createMedicalRecord(Long appointmentId, Long DoctorId, Long patientId, MedicalRecordRequestDto medicalRecordRequestDto);
+
+    List<MedicalRecordSummaryDto> findAllByUserId(Long userId);
 }

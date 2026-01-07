@@ -2,11 +2,11 @@ package com.yt.jpa.hospitalManagement.service.impl;
 
 import com.yt.jpa.hospitalManagement.dto.request.MedicalRecordRequestDto;
 import com.yt.jpa.hospitalManagement.dto.response.MedicalRecordResponseDto;
+import com.yt.jpa.hospitalManagement.dto.summary.MedicalRecordSummaryDto;
 import com.yt.jpa.hospitalManagement.entity.Appointment;
 import com.yt.jpa.hospitalManagement.entity.Doctor;
 import com.yt.jpa.hospitalManagement.entity.MedicalRecord;
 import com.yt.jpa.hospitalManagement.entity.Patient;
-import com.yt.jpa.hospitalManagement.enums.AppointmentStatus;
 import com.yt.jpa.hospitalManagement.exception.DuplicateResourceException;
 import com.yt.jpa.hospitalManagement.exception.ResourceNotFoundException;
 import com.yt.jpa.hospitalManagement.exception.UnauthorizedActionException;
@@ -121,4 +121,31 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         return modelMapper.map(medicalRecordRepository.save(record), MedicalRecordResponseDto.class);
     }
 
+    @Override
+    public List<MedicalRecordSummaryDto> findAllByUserId(Long userId) {
+        // 1. Check existence and roles
+        boolean isDoctor = doctorRepository.existsById(userId);
+        boolean isPatient = patientRepository.existsById(userId);
+
+        if (!isDoctor && !isPatient) {
+            throw new UnauthorizedActionException("You cannot access these records.");
+        }
+
+        List<MedicalRecord> medicalRecords;
+
+        // 2. Determine which records to fetch
+        // Note: If someone is BOTH, we default to Patient view
+        if (isPatient) {
+            // Patients see records where they are the recipient
+            medicalRecords = medicalRecordRepository.findByPatientId(userId);
+        } else {
+            // Doctors see records they have written
+            medicalRecords = medicalRecordRepository.findByDoctorId(userId);
+        }
+
+        // 3. Map and return
+        return medicalRecords.stream()
+                .map(m -> modelMapper.map(m, MedicalRecordSummaryDto.class))
+                .toList();
+    }
 }
