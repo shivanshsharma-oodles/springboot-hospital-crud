@@ -10,7 +10,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.Set;
 
 @Slf4j
@@ -44,6 +43,4 @@ public class AdminSeeder implements CommandLineRunner {
 
         log.info("Admin user seeded successfully with email: {}", adminEmail);
     }
-
-
 }

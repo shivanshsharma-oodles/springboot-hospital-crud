@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Table(name = "doctor_slots")
@@ -27,4 +28,7 @@ public class DoctorSlot {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
+
+    @OneToMany(mappedBy = "doctorSlot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Appointment> appointments;
 }

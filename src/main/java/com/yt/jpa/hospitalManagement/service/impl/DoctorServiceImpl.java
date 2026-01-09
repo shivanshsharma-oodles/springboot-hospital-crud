@@ -227,13 +227,26 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor does not exist"));
 
-//        Illegal Slot
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        // 1. Basic timing check (Start before End)
         if (dto.getStartTime().isAfter(dto.getEndTime())
                 || dto.getStartTime().equals(dto.getEndTime())) {
-            throw new IllegalArgumentException("Invalid slot timing");
+            throw new IllegalArgumentException("Invalid slot timing: Start must be before end.");
         }
 
-        // Prevent overlapping slots
+        // 2. Future Date Check
+        if(dto.getDate().isBefore(today)){
+            throw new IllegalArgumentException("Cannot create a slot for a past date.");
+        }
+
+        // 3. Future Time Check (Only if the date is today)
+        if(dto.getDate().equals(today) && dto.getStartTime().isBefore(now)) {
+            throw new IllegalArgumentException("Cannot create a slot for a past time today.");
+        }
+
+        // 4. Prevent overlapping slots
         boolean overlap = doctorSlotRepository
                 .existsByDoctorAndDateAndStartTimeLessThanAndEndTimeGreaterThan(
                         doctor,
@@ -296,14 +309,21 @@ public class DoctorServiceImpl implements DoctorService {
                     }
                     return false;
                 })
-                .map(slot -> modelMapper.map(slot, DoctorSlotResponseDto.class))
+                .map(slot -> {
+                    // Manual mapping or explicit DTO conversion
+                    DoctorSlotResponseDto dto = new DoctorSlotResponseDto();
+                    dto.setId(slot.getId());
+                    dto.setDate(slot.getDate());
+                    dto.setStartTime(slot.getStartTime());
+                    dto.setEndTime(slot.getEndTime());
+                    return dto;
+                })
                 .toList();
     }
 
     @Transactional
     @Override
     public void deleteDoctorSlot(Long doctorId, Long slotId) {
-
         DoctorSlot slot = doctorSlotRepository.findById(slotId)
                 .orElseThrow(() -> new ResourceNotFoundException("Slot does not exist"));
 
@@ -312,14 +332,18 @@ public class DoctorServiceImpl implements DoctorService {
         }
 
 //        Prevent Delete on booked slot
-        boolean alreadyBooked = appointmentRepository
+        boolean canNotDelete = appointmentRepository
                 .existsByDoctorSlotAndAppointmentStatusIn(
                         slot,
-                        List.of(AppointmentStatus.PENDING, AppointmentStatus.SCHEDULED, AppointmentStatus.COMPLETED)
+                        List.of(
+                                AppointmentStatus.PENDING,
+                                AppointmentStatus.SCHEDULED,
+                                AppointmentStatus.COMPLETED
+                        )
                 );
 
-        if (alreadyBooked) {
-            throw new IllegalStateException("Slot already booked, and can not be deleted");
+        if (canNotDelete) {
+            throw new IllegalStateException("Slot cannot be deleted: It has an active or completed appointment.");
         }
 
         doctorSlotRepository.delete(slot);
