@@ -85,7 +85,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() ->  new ResourceNotFoundException("Patient Not Found"));
 
-        DoctorSlot slot = doctorSlotRepository.findById(appointmentRequestDto.getDoctorSlotId())
+// PESSIMISTIC WRITE LOCK
+        DoctorSlot slot = doctorSlotRepository.findByIdWithLock(appointmentRequestDto.getDoctorSlotId())
                 .orElseThrow(() -> new ResourceNotFoundException("Slot not found"));
 
         // Prevent double booking

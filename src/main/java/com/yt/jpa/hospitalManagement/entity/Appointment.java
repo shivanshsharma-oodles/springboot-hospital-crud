@@ -21,6 +21,7 @@ public class Appointment {
     @Enumerated(EnumType.STRING)
     private AppointmentStatus appointmentStatus;
 
+
 //    Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     private Doctor doctor; // 1 Doctor → Many Appointments
