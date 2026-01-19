@@ -77,6 +77,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     /* Create Appointment */
     @Override
+    @Transactional
     public AppointmentResponseDto createAppointment(Long patientId, AppointmentRequestDto appointmentRequestDto){
 
         LocalDate today = LocalDate.now();
